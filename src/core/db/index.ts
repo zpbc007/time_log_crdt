@@ -1,6 +1,7 @@
-import { Doc, YMapEvent } from "yjs";
+import { Doc, encodeStateAsUpdateV2, YMapEvent } from "yjs";
 import { ChecklistTableKey } from "./constants";
-import { CheckList } from "@/core/model";
+import { initCheckList, initColor } from "@/core/model";
+import { CheckList } from "../model/CheckList";
 
 export function createDB(doc: Doc) {
   const checkListMap = doc.getMap<CheckList>(ChecklistTableKey);
@@ -31,8 +32,20 @@ export function createDB(doc: Doc) {
     });
   };
   checkListMap.observe(handleCheckListMapChange);
-  const upsertCheckList = (checkList: CheckList) => {
-    checkListMap.set(checkList.id, checkList);
+  const upsertCheckList = (
+    id: string,
+    createDate: number,
+    name: string,
+    { r, g, b, a }: { r: number; g: number; b: number; a: number }
+  ) => {
+    const checkList = initCheckList(
+      id,
+      createDate,
+      name,
+      initColor(r, g, b, a)
+    );
+
+    checkListMap.set(id, checkList);
   };
   const deleteCheckList = (id: string) => {
     checkListMap.delete(id);
@@ -41,11 +54,14 @@ export function createDB(doc: Doc) {
     return Array.from(checkListMap.values());
   };
 
+  const save = () => encodeStateAsUpdateV2(doc);
+
   return {
     checkListService: {
       upsertCheckList,
       deleteCheckList,
       queryAllCheckList,
     },
+    save,
   };
 }

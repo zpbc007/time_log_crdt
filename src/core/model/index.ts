@@ -1,1 +1,2 @@
-export { CheckList } from "./CheckList";
+export { initCheckList } from "./CheckList";
+export { initColor } from "./Color";
