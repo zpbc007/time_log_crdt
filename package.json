@@ -1,5 +1,5 @@
 {
-  "name": "vite-vanilla-ts-lib-starter",
+  "name": "time-log-crdt",
   "private": true,
   "version": "0.0.4",
   "module": "./dist/vite-vanilla-ts-lib-starter.js",
