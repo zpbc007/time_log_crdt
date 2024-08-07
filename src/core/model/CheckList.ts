@@ -1,22 +1,6 @@
-import { Color } from "./Color";
-
 export type CheckList = {
   id: string;
-  createDate: number;
+  create_date_since_1970: number;
   name: string;
-  color: Color;
+  colorHex: string;
 };
-
-export function initCheckList(
-  id: string,
-  createDate: number,
-  name: string,
-  color: Color
-): CheckList {
-  return {
-    id,
-    createDate,
-    name,
-    color,
-  };
-}

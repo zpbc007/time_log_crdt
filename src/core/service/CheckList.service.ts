@@ -15,7 +15,16 @@ export function createCheckListService(
   const checkListMap = doc.getMap<CheckList>(ChecklistTableKey);
 
   const queryAll = () => {
-    return Array.from(checkListMap.values());
+    return Array.from(checkListMap.values()).map(
+      ({ id, name, create_date_since_1970, colorHex }) => {
+        return TL_CRDT_Native.checkList.createWithIdNameColorHexCreate_date_since_1970(
+          id,
+          name,
+          colorHex,
+          create_date_since_1970
+        );
+      }
+    );
   };
 
   checkListMap.observe(() => {
@@ -24,8 +33,13 @@ export function createCheckListService(
 
   return {
     queryAll,
-    upsert: (item: CheckList) => {
-      checkListMap.set(item.id, item);
+    upsert: ({ id, name, create_date_since_1970, colorHex }: CheckList) => {
+      checkListMap.set(id, {
+        id,
+        name,
+        create_date_since_1970,
+        colorHex,
+      });
     },
     delete: (id: string) => {
       checkListMap.delete(id);

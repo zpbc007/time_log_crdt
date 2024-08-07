@@ -1,4 +1,6 @@
+import "../core/shim/crypto";
 import { TimeLogCRDT } from "@/core";
 
-// @ts-expect-error 添加全局属性供 swift 调用
-window.timeLogCRDT = new TimeLogCRDT();
+TL_CRDT_Native.logger.log("create timeLogCRDT");
+// 添加全局属性供 swift 调用
+TL_CRDT_Client = TimeLogCRDT;
