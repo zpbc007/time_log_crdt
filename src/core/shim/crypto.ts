@@ -21,6 +21,9 @@ const glo =
         ? global
         : {};
 // @ts-expect-error 模拟 crypto
-glo.crypto = glo.crypto || {};
+if (!glo.crypto) {
+  // @ts-expect-error 模拟 crypto
+  glo.crypto = {};
+}
 // @ts-expect-error 模拟 crypto
 glo.crypto.getRandomValues = glo.crypto.getRandomValues || getRandomValues;

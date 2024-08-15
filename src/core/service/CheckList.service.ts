@@ -1,5 +1,5 @@
 import { Doc } from "yjs";
-import { ChecklistTableKey } from "../db/constants";
+import { ChecklistTableKey } from "./constants";
 import { CheckList } from "../model";
 
 export type CheckListService = {
