@@ -34,21 +34,40 @@ function load(persistedState?: Uint8Array): Result<void> {
   };
 }
 
-function save(): Result<Uint8Array> {
+function save(): Result<{ size: number; sync: (_: Uint8Array) => void }> {
   const encodedState = encodeStateAsUpdateV2(rootDoc);
+
+  TL_CRDT_Native.logger.log(
+    `will save len: ${encodedState.length}, data: ${encodedState}`
+  );
 
   return {
     code: CommonResultCode.success,
-    data: encodedState,
+    data: {
+      size: encodedState.length,
+      sync: (nativeArray: Uint8Array) => {
+        for (let i = 0; i < encodedState.length; i++) {
+          nativeArray[i] = encodedState[i];
+        }
+      },
+    },
   };
 }
 
-function sync(persistedState: Uint8Array): Result<void> {
-  applyUpdateV2(rootDoc, persistedState);
-
-  return {
-    code: CommonResultCode.success,
-  };
+enum SyncCode {
+  noState = 100,
+}
+function sync(persistedState?: Uint8Array): Result<void> {
+  if (!persistedState) {
+    return {
+      code: SyncCode.noState,
+    };
+  } else {
+    applyUpdateV2(rootDoc, persistedState);
+    return {
+      code: CommonResultCode.success,
+    };
+  }
 }
 
 export const TimeLogCRDT = new Proxy(

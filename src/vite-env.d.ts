@@ -15,6 +15,7 @@ declare global {
         colorHex: string,
         create_date_since_1970: number
       ) => CheckList;
+      notifyChange: () => void;
     };
     crypto: {
       getRandomValues: (_: Uint32Array) => Uint32Array | undefined;

@@ -20,6 +20,9 @@ const NativeShim: typeof TL_CRDT_Native = {
         colorHex,
       };
     },
+    notifyChange: () => {
+      console.log("checklist change!");
+    },
   },
   crypto: {
     getRandomValues(arr: Uint32Array) {
