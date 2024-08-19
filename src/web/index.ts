@@ -24,6 +24,17 @@ const NativeShim: typeof TL_CRDT_Native = {
       console.log("checklist change!");
     },
   },
+  tag: {
+    createWithIdName: (id, name) => {
+      return {
+        id,
+        name,
+      };
+    },
+    notifyChange: () => {
+      console.log("tag change");
+    },
+  },
   crypto: {
     getRandomValues(arr: Uint32Array) {
       return window.crypto.getRandomValues(arr);

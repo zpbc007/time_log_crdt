@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 import { TimeLogCRDT } from "./core";
-import { CheckList } from "./core/model";
+import { CheckList, Tag } from "./core/model";
 
 declare global {
   const TL_CRDT_Native: {
@@ -15,6 +15,10 @@ declare global {
         colorHex: string,
         create_date_since_1970: number
       ) => CheckList;
+      notifyChange: () => void;
+    };
+    tag: {
+      createWithIdName: (id: string, name: string) => Tag;
       notifyChange: () => void;
     };
     crypto: {
