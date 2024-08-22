@@ -15,7 +15,7 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "dev": "vite --host",
-    "build": "rimraf build/**/* && tsc && vite build && copyfiles ./package.json build",
+    "build": "rimraf build/**/* && tsc && vite build && copyfiles ./package.json build && copyfiles -f ./build/dist/time-log-crdt.iife.js /Users/zhaopeng/Documents/code/time_log/time_log/Resources",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
     "lint:scripts": "eslint . --ext .ts",

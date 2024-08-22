@@ -1,6 +1,6 @@
 import { Doc } from "yjs";
 import { ChecklistTableKey } from "./constants";
-import { CheckList } from "../model";
+import { CheckList, fromNativeCheckList, toNativeCheckList } from "../model";
 import { CommonResultCode, Result } from "../common/type";
 
 export type CheckListService = {
@@ -14,32 +14,13 @@ export function createCheckListService(doc: Doc): CheckListService {
 
   const queryAll: CheckListService["queryAll"] = () => {
     return {
-      data: Array.from(checkListMap.values()).map(
-        ({ id, name, create_date_since_1970, colorHex }) => {
-          return TL_CRDT_Native.checkList.createWithIdNameColorHexCreate_date_since_1970(
-            id,
-            name,
-            colorHex,
-            create_date_since_1970
-          );
-        }
-      ),
+      data: Array.from(checkListMap.values()).map(toNativeCheckList),
       code: CommonResultCode.success,
     };
   };
 
-  const upsert: CheckListService["upsert"] = ({
-    id,
-    name,
-    create_date_since_1970,
-    colorHex,
-  }: CheckList) => {
-    checkListMap.set(id, {
-      id,
-      name,
-      create_date_since_1970,
-      colorHex,
-    });
+  const upsert: CheckListService["upsert"] = (checkList: CheckList) => {
+    checkListMap.set(checkList.id, fromNativeCheckList(checkList));
 
     return {
       code: CommonResultCode.success,

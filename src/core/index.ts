@@ -37,9 +37,7 @@ function load(persistedState?: Uint8Array): Result<void> {
 function save(): Result<{ size: number; sync: (_: Uint8Array) => void }> {
   const encodedState = encodeStateAsUpdateV2(rootDoc);
 
-  TL_CRDT_Native.logger.log(
-    `will save len: ${encodedState.length}, data: ${encodedState}`
-  );
+  TL_CRDT_Native.logger.log(`will save data len: ${encodedState.length}`);
 
   return {
     code: CommonResultCode.success,

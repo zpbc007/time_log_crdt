@@ -1,7 +1,8 @@
 import { Doc } from "yjs";
 import { CommonResultCode, Result } from "../common/type";
-import { Tag } from "../model";
+import { fromNativeTag, Tag, toNativeTag } from "../model";
 import { TagTableKey } from "./constants";
+import { createTaskTagRelationService } from "./TaskTagRelation.service";
 
 export type TagService = {
   queryAll: () => Result<Tag[]>;
@@ -11,19 +12,22 @@ export type TagService = {
 
 export function createTagService(doc: Doc): TagService {
   const tagMap = doc.getMap<Tag>(TagTableKey);
+  const taskTagRelationService = createTaskTagRelationService(doc);
+
+  tagMap.observe(() => {
+    TL_CRDT_Native.tag.notifyChange();
+  });
 
   const queryAll: TagService["queryAll"] = () => {
     return {
-      data: Array.from(tagMap.values()).map(({ id, name }) => {
-        return TL_CRDT_Native.tag.createWithIdName(id, name);
-      }),
+      data: Array.from(tagMap.values()).map(toNativeTag),
       code: CommonResultCode.success,
     };
   };
 
   const upsert: TagService["upsert"] = tags => {
     tags.forEach(tag => {
-      tagMap.set(tag.id, { id: tag.id, name: tag.name });
+      tagMap.set(tag.id, fromNativeTag(tag));
     });
 
     return {
@@ -35,15 +39,12 @@ export function createTagService(doc: Doc): TagService {
     ids.forEach(id => {
       tagMap.delete(id);
     });
+    taskTagRelationService.deleteTags(ids);
 
     return {
       code: CommonResultCode.success,
     };
   };
-
-  tagMap.observe(() => {
-    TL_CRDT_Native.tag.notifyChange();
-  });
 
   return {
     queryAll,

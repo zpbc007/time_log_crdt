@@ -35,6 +35,32 @@ const NativeShim: typeof TL_CRDT_Native = {
       console.log("tag change");
     },
   },
+  task: {
+    createWithIdNameCommentDoneOrderCreate_date_since_1970ParentTaskCheckList: (
+      id: string,
+      name: string,
+      comment: string,
+      done: boolean,
+      order: number,
+      create_date_since_1970: number,
+      parentTask?: string,
+      checkList?: string
+    ) => {
+      return {
+        id,
+        name,
+        comment,
+        done,
+        order,
+        create_date_since_1970,
+        parentTask,
+        checkList,
+      };
+    },
+    notifyChange: () => {
+      console.log("task change");
+    },
+  },
   crypto: {
     getRandomValues(arr: Uint32Array) {
       return window.crypto.getRandomValues(arr);
