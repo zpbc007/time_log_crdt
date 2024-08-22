@@ -2,6 +2,7 @@ import { Doc } from "yjs";
 import { ChecklistTableKey } from "./constants";
 import { CheckList, fromNativeCheckList, toNativeCheckList } from "../model";
 import { CommonResultCode, Result } from "../common/type";
+import { createTaskInnerService } from "./Task.service";
 
 export type CheckListService = {
   queryAll: () => Result<CheckList[]>;
@@ -10,6 +11,7 @@ export type CheckListService = {
 };
 
 export function createCheckListService(doc: Doc): CheckListService {
+  const taskInnerService = createTaskInnerService(doc);
   const checkListMap = doc.getMap<CheckList>(ChecklistTableKey);
 
   const queryAll: CheckListService["queryAll"] = () => {
@@ -29,6 +31,7 @@ export function createCheckListService(doc: Doc): CheckListService {
 
   const deleteFunc: CheckListService["delete"] = (id: string) => {
     checkListMap.delete(id);
+    taskInnerService.removeCheckListInfo(id);
 
     return {
       code: CommonResultCode.success,

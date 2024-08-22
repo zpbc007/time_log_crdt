@@ -18,6 +18,30 @@ export type TaskService = {
   delete: (id: string) => Result<void>;
 };
 
+export type TaskInnerService = {
+  removeCheckListInfo: (checkListId: string) => void;
+};
+
+export function createTaskInnerService(doc: Doc): TaskInnerService {
+  const taskMap = doc.getMap<Task>(TaskTableKey);
+
+  const removeCheckListInfo: TaskInnerService["removeCheckListInfo"] =
+    checkListId => {
+      Array.from(taskMap.values())
+        .filter(item => item.checkList == checkListId)
+        .forEach(item => {
+          taskMap.set(item.id, {
+            ...item,
+            checkList: undefined,
+          });
+        });
+    };
+
+  return {
+    removeCheckListInfo,
+  };
+}
+
 export function createTaskService(doc: Doc): TaskService {
   const taskMap = doc.getMap<Task>(TaskTableKey);
   const taskTagRelationService = createTaskTagRelationService(doc);

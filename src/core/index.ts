@@ -21,7 +21,7 @@ function load(persistedState?: Uint8Array): Result<void> {
     // 复制一份，swift 可以将传入的 state 释放
     const copyState = persistedState.slice();
     TL_CRDT_Native.logger.log(
-      `load persistedState: length: ${copyState.length}, data: ${copyState}`
+      `load persistedState length: ${copyState.length}`
     );
     applyUpdateV2(rootDoc, copyState);
   }
