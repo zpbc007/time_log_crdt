@@ -3,6 +3,7 @@ import { createCheckListService } from "./CheckList.service";
 import { createTagService } from "./Tag.service";
 import { createTaskService } from "./Task.service";
 export type { CheckListService } from "./CheckList.service";
+export * from "./constants";
 
 export function createService(doc: Doc) {
   const checkListService = createCheckListService(doc);

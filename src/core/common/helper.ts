@@ -39,11 +39,24 @@ export function binarySearchForYArray<T>(
   arr: YArray<T>,
   compare: (a: T) => number
 ) {
-  return _binarySearch(0, arr.length, index => arr.get(index), compare);
+  if (arr.length === 0) {
+    return {
+      result: -1,
+      left: 0,
+    };
+  }
+
+  return _binarySearch(0, arr.length - 1, index => arr.get(index), compare);
 }
 
 export function binarySearch<T>(arr: T[], compare: (a: T) => number) {
-  return _binarySearch(0, arr.length, index => arr[index], compare);
+  if (arr.length === 0) {
+    return {
+      result: -1,
+      left: 0,
+    };
+  }
+  return _binarySearch(0, arr.length - 1, index => arr[index], compare);
 }
 
 export function isSameDay(date1: Date, date2: Date): boolean {

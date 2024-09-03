@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 import { TimeLogCRDT } from "./core";
-import { CheckList, Tag, Task } from "./core/model";
+import { CheckList, Tag, Task, TaskLog } from "./core/model";
 
 declare global {
   const TL_CRDT_Native: {
@@ -33,6 +33,17 @@ declare global {
         checkList?: string
       ) => Task;
       notifyChange: () => void;
+    };
+    taskLog: {
+      createWithIdTaskCommentStart_date_since_1970End_date_since_1970: (
+        id: string,
+        task: string,
+        comment: string,
+        start_date_since_1970: number,
+        end_date_since_1970?: number
+      ) => TaskLog;
+      notifyChange: () => void;
+      notifyRecordingChange: () => void;
     };
     crypto: {
       getRandomValues: (_: Uint32Array) => Uint32Array | undefined;
