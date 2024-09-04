@@ -7,7 +7,7 @@ import {
   TaskLogMetaTableKey,
   TaskLogTableKey,
 } from "./constants";
-import { TaskLogMeta } from "../model/TaskLog";
+import { TaskLogMeta, toNativeTaskLog } from "../model/TaskLog";
 import { binarySearchForYArray } from "../common/helper";
 
 export type TaskLogService = {
@@ -18,8 +18,8 @@ export type TaskLogService = {
   updateComment: (logId: string, comment: string) => Result<void>;
   upsert: (taskLog: TaskLog) => Result<number>;
   delete: (id: string) => Result<void>;
-  queryTaskLogDateRange: () => Result<[Date, Date] | undefined>;
-  queryTaskLogInfoByDateRange: (
+  queryTaskLogDateRange: () => Result<[number, number] | undefined>;
+  queryTaskLogsByDateRange: (
     start_since_1970: number,
     end_since_1970: number
   ) => Result<TaskLog[]>;
@@ -29,10 +29,6 @@ export enum UpsertCode {
   startDateDuplicate = 100,
   startDateConflict = 101,
   endDateConflict = 102,
-}
-
-export enum FinishCode {
-  noRecordingLog = 100,
 }
 
 export enum UpdateCommentCode {
@@ -82,7 +78,7 @@ export function createTaskLogService(doc: Doc): TaskLogService {
     const taskLog = recordingTaskLogMap.get(RecordingTaskLogValueKey);
     if (!taskLog) {
       return {
-        code: FinishCode.noRecordingLog,
+        code: CommonResultCode.success,
       };
     }
     const now = Date.now();
@@ -102,7 +98,7 @@ export function createTaskLogService(doc: Doc): TaskLogService {
 
     return {
       code: CommonResultCode.success,
-      data: taskLog,
+      data: taskLog ? toNativeTaskLog(taskLog) : undefined,
     };
   };
 
@@ -224,53 +220,59 @@ export function createTaskLogService(doc: Doc): TaskLogService {
     };
   };
 
-  const queryTaskLogInfoByDateRange: TaskLogService["queryTaskLogInfoByDateRange"] =
-    (start_since_1970, end_since_1970) => {
-      const emptyResult: Result<TaskLog[]> = {
-        code: CommonResultCode.success,
-        data: [],
-      };
-
-      if (taskLogMetaArray.length === 0) {
-        return emptyResult;
-      }
-
-      const startIndex = binarySearchForYArray(taskLogMetaArray, meta => {
-        return meta.end_date_since_1970 - start_since_1970;
-      }).left;
-      // 超出范围
-      if (startIndex >= taskLogMetaArray.length) {
-        return emptyResult;
-      }
-
-      const endIndex = binarySearchForYArray(taskLogMetaArray, meta => {
-        return meta.start_date_since_1970 - end_since_1970;
-      }).left;
-      if (endIndex === 0) {
-        const targetMeta = taskLogMetaArray.get(endIndex);
-        if (targetMeta.end_date_since_1970 <= end_since_1970) {
-          const targetTaskLog = taskLogMap.get(targetMeta.id);
-          return {
-            code: CommonResultCode.success,
-            data: targetTaskLog ? [targetTaskLog] : [],
-          };
-        } else {
-          // 超出范围
-          return emptyResult;
-        }
-      }
-
-      return {
-        code: CommonResultCode.success,
-        data: taskLogMetaArray
-          .slice(
-            startIndex,
-            endIndex === taskLogMetaArray.length - 1 ? endIndex + 1 : endIndex
-          )
-          .map(meta => taskLogMap.get(meta.id))
-          .filter(taskLog => taskLog) as TaskLog[],
-      };
+  const queryTaskLogsByDateRange: TaskLogService["queryTaskLogsByDateRange"] = (
+    start_since_1970,
+    end_since_1970
+  ) => {
+    const emptyResult: Result<TaskLog[]> = {
+      code: CommonResultCode.success,
+      data: [],
     };
+
+    if (taskLogMetaArray.length === 0) {
+      return emptyResult;
+    }
+
+    const startIndex = binarySearchForYArray(taskLogMetaArray, meta => {
+      return meta.end_date_since_1970 - start_since_1970;
+    }).left;
+    // 超出范围
+    if (startIndex >= taskLogMetaArray.length) {
+      return emptyResult;
+    }
+
+    const endIndex = binarySearchForYArray(taskLogMetaArray, meta => {
+      return meta.start_date_since_1970 - end_since_1970;
+    }).left;
+    if (endIndex === 0) {
+      const targetMeta = taskLogMetaArray.get(endIndex);
+      if (targetMeta.end_date_since_1970 <= end_since_1970) {
+        const targetTaskLog = taskLogMap.get(targetMeta.id);
+        return {
+          code: CommonResultCode.success,
+          data: targetTaskLog ? [toNativeTaskLog(targetTaskLog)] : [],
+        };
+      } else {
+        // 超出范围
+        return emptyResult;
+      }
+    }
+
+    return {
+      code: CommonResultCode.success,
+      data: taskLogMetaArray
+        .slice(
+          startIndex,
+          endIndex === taskLogMetaArray.length - 1 ? endIndex + 1 : endIndex
+        )
+        .map(meta => {
+          const taskLog = taskLogMap.get(meta.id);
+
+          return taskLog ? toNativeTaskLog(taskLog) : undefined;
+        })
+        .filter(taskLog => taskLog) as TaskLog[],
+    };
+  };
 
   return {
     start,
@@ -281,6 +283,6 @@ export function createTaskLogService(doc: Doc): TaskLogService {
     upsert,
     delete: deleteFunc,
     queryTaskLogDateRange,
-    queryTaskLogInfoByDateRange,
+    queryTaskLogsByDateRange,
   };
 }

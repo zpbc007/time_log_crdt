@@ -61,6 +61,29 @@ const NativeShim: typeof TL_CRDT_Native = {
       console.log("task change");
     },
   },
+  taskLog: {
+    createWithIdTaskCommentStart_date_since_1970End_date_since_1970: (
+      id: string,
+      task: string,
+      comment: string,
+      start_date_since_1970: number,
+      end_date_since_1970?: number
+    ) => {
+      return {
+        id,
+        task,
+        comment,
+        start_date_since_1970,
+        end_date_since_1970: end_date_since_1970 || Date.now(),
+      };
+    },
+    notifyChange: () => {
+      console.log("taskLog change");
+    },
+    notifyRecordingChange: () => {
+      console.log("recording taskLog change");
+    },
+  },
   crypto: {
     getRandomValues(arr: Uint32Array) {
       return window.crypto.getRandomValues(arr);

@@ -7,12 +7,14 @@ import { createTaskTagRelationService } from "./TaskTagRelation.service";
 export type TaskService = {
   queryAll: (includeDone: boolean) => Result<Task[]>;
   queryById: (id: string) => Result<Task | undefined>;
+  queryByIds: (ids: string[]) => Result<Task[]>;
   queryByCheckList: (
     checkListID: string | null,
     includeDone: boolean
   ) => Result<Task[]>;
   queryByTag: (tagId: string, includeDone: boolean) => Result<Task[]>;
   queryTags: (id: string) => Result<Tag["id"][]>;
+  queryTagRelation: (ids: string[]) => Result<{ [taskId: string]: string[] }>;
   upsert: (task: Task, tagIds: string[]) => Result<void>;
   update: (tasks: Task[]) => Result<void>;
   delete: (id: string) => Result<void>;
@@ -68,6 +70,15 @@ export function createTaskService(doc: Doc): TaskService {
     return {
       data: targetTask ? toNativeTask(targetTask) : null,
       code: CommonResultCode.success,
+    };
+  };
+
+  const queryByIds: TaskService["queryByIds"] = ids => {
+    const tasks = ids.map(id => taskMap.get(id)).filter(item => item) as Task[];
+
+    return {
+      code: CommonResultCode.success,
+      data: tasks,
     };
   };
 
@@ -128,6 +139,22 @@ export function createTaskService(doc: Doc): TaskService {
     };
   };
 
+  const queryTagRelation: TaskService["queryTagRelation"] = taskIds => {
+    const relation = taskIds.reduce<{ [taskId: string]: string[] }>(
+      (acc, taskId) => {
+        acc[taskId] = taskTagRelationService.queryTagsByTask(taskId);
+
+        return acc;
+      },
+      {}
+    );
+
+    return {
+      code: CommonResultCode.success,
+      data: relation,
+    };
+  };
+
   const upsert: TaskService["upsert"] = (task, tagIds) => {
     taskMap.set(task.id, fromNativeTask(task));
     taskTagRelationService.upsert(task.id, tagIds);
@@ -159,9 +186,11 @@ export function createTaskService(doc: Doc): TaskService {
   return {
     queryAll,
     queryById,
+    queryByIds,
     queryByCheckList,
     queryByTag,
     queryTags,
+    queryTagRelation,
     upsert,
     update,
     delete: deleteFunc,

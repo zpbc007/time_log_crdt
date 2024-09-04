@@ -92,7 +92,7 @@ describe("core.service.TaskLogService", () => {
       end_date_since_1970: end,
     });
     const result = taskLogService.updateComment("taskLog-1", "xxx");
-    const taskLogs = taskLogService.queryTaskLogInfoByDateRange(start, end);
+    const taskLogs = taskLogService.queryTaskLogsByDateRange(start, end);
 
     expect(result.code).toEqual(CommonResultCode.success);
     expect(taskLogs.data[0].comment).toEqual("xxx");
@@ -200,7 +200,7 @@ describe("core.service.TaskLogService", () => {
     const result1 = taskLogService.upsert(taskLog3);
     const result2 = taskLogService.upsert(taskLog2);
     const result3 = taskLogService.upsert(taskLog1);
-    const taskLogsResult = taskLogService.queryTaskLogInfoByDateRange(
+    const taskLogsResult = taskLogService.queryTaskLogsByDateRange(
       taskLog1.start_date_since_1970,
       taskLog3.end_date_since_1970
     );
@@ -232,7 +232,7 @@ describe("core.service.TaskLogService", () => {
     taskLogs.forEach(item => taskLogService.upsert(item));
 
     const deleteResult = taskLogService.delete("taskLog-1");
-    const taskLogsResult = taskLogService.queryTaskLogInfoByDateRange(
+    const taskLogsResult = taskLogService.queryTaskLogsByDateRange(
       taskLogs[0].start_date_since_1970,
       taskLogs[2].end_date_since_1970
     );
@@ -278,7 +278,7 @@ describe("core.service.TaskLogService", () => {
     ]);
   });
 
-  it("queryTaskLogInfoByDateRange should work", () => {
+  it("queryTaskLogsByDateRange should work", () => {
     const taskLogs: TaskLog[] = [
       [new Date("2024-05-01"), new Date("2024-05-03")],
       [new Date("2024-05-04"), new Date("2024-05-06")],
@@ -297,7 +297,7 @@ describe("core.service.TaskLogService", () => {
     taskLogs.forEach(item => taskLogService.upsert(item));
 
     // 在所有 taskLog 之前
-    const result1 = taskLogService.queryTaskLogInfoByDateRange(
+    const result1 = taskLogService.queryTaskLogsByDateRange(
       new Date("2024-04-01").getTime(),
       new Date("2024-04-05").getTime()
     );
@@ -305,7 +305,7 @@ describe("core.service.TaskLogService", () => {
     expect(result1.data.length).toEqual(0);
 
     // 在所有 taskLog 之后
-    const result2 = taskLogService.queryTaskLogInfoByDateRange(
+    const result2 = taskLogService.queryTaskLogsByDateRange(
       new Date("2024-06-01").getTime(),
       new Date("2024-06-05").getTime()
     );
@@ -313,7 +313,7 @@ describe("core.service.TaskLogService", () => {
     expect(result2.data.length).toEqual(0);
 
     // start & end 有部分重叠
-    const result3 = taskLogService.queryTaskLogInfoByDateRange(
+    const result3 = taskLogService.queryTaskLogsByDateRange(
       new Date("2024-05-01 12:00").getTime(),
       new Date("2024-05-05").getTime()
     );
