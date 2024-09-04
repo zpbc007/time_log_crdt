@@ -74,7 +74,17 @@ export function createTaskService(doc: Doc): TaskService {
   };
 
   const queryByIds: TaskService["queryByIds"] = ids => {
-    const tasks = ids.map(id => taskMap.get(id)).filter(item => item) as Task[];
+    const tasks = ids
+      .map(id => {
+        const task = taskMap.get(id);
+
+        if (!task) {
+          return undefined;
+        }
+
+        return toNativeTask(task);
+      })
+      .filter(item => item) as Task[];
 
     return {
       code: CommonResultCode.success,

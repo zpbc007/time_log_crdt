@@ -1,4 +1,5 @@
 import { TimeLogCRDT } from "@/core";
+import { Task } from "@/core/model";
 
 const NativeShim: typeof TL_CRDT_Native = {
   logger: {
@@ -43,8 +44,8 @@ const NativeShim: typeof TL_CRDT_Native = {
       done: boolean,
       order: number,
       create_date_since_1970: number,
-      parentTask?: string,
-      checkList?: string
+      parentTask: string | null,
+      checkList: string | null
     ) => {
       return {
         id,
@@ -55,7 +56,7 @@ const NativeShim: typeof TL_CRDT_Native = {
         create_date_since_1970,
         parentTask,
         checkList,
-      };
+      } as Task;
     },
     notifyChange: () => {
       console.log("task change");
@@ -67,7 +68,7 @@ const NativeShim: typeof TL_CRDT_Native = {
       task: string,
       comment: string,
       start_date_since_1970: number,
-      end_date_since_1970?: number
+      end_date_since_1970: number | null
     ) => {
       return {
         id,

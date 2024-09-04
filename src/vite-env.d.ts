@@ -29,8 +29,8 @@ declare global {
         done: boolean,
         order: number,
         create_date_since_1970: number,
-        parentTask?: string,
-        checkList?: string
+        parentTask: string,
+        checkList: string
       ) => Task;
       notifyChange: () => void;
     };
@@ -40,7 +40,7 @@ declare global {
         task: string,
         comment: string,
         start_date_since_1970: number,
-        end_date_since_1970?: number
+        end_date_since_1970: number
       ) => TaskLog;
       notifyChange: () => void;
       notifyRecordingChange: () => void;

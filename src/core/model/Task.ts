@@ -26,8 +26,8 @@ export function toNativeTask({
     done,
     order,
     create_date_since_1970,
-    parentTask,
-    checkList
+    parentTask || "",
+    checkList || ""
   );
 }
 

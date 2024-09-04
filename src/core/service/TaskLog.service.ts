@@ -1,18 +1,26 @@
 import { Doc } from "yjs";
 import { CommonResultCode, Result } from "../common/type";
-import { fromNativeTaskLog, TaskLog } from "../model";
+import {
+  fromNativeTaskLog,
+  TaskLog,
+  toNativeTaskLog,
+  TaskLogMeta,
+} from "../model";
 import {
   RecordingTaskLogTableKey,
   RecordingTaskLogValueKey,
   TaskLogMetaTableKey,
   TaskLogTableKey,
 } from "./constants";
-import { TaskLogMeta, toNativeTaskLog } from "../model/TaskLog";
 import { binarySearchForYArray } from "../common/helper";
 
 export type TaskLogService = {
-  start: (taskId: string, logId: string) => Result<void>;
-  finish: () => Result<void>;
+  start: (
+    taskId: string,
+    logId: string,
+    date_since_1970: number
+  ) => Result<void>;
+  finish: (date_since_1970: number) => Result<void>;
   queryRecordingTaskLog: () => Result<TaskLog | undefined>;
 
   updateComment: (logId: string, comment: string) => Result<void>;
@@ -47,17 +55,16 @@ export function createTaskLogService(doc: Doc): TaskLogService {
     TL_CRDT_Native.taskLog.notifyRecordingChange();
   });
 
-  const start: TaskLogService["start"] = (taskId: string, logId: string) => {
+  const start: TaskLogService["start"] = (taskId, logId, date_since_1970) => {
     const oldRecordingTaskLog = recordingTaskLogMap.get(
       RecordingTaskLogValueKey
     );
-    const now = Date.now();
 
     if (oldRecordingTaskLog) {
       // 有正在记录中的任务，先结束
       upsert({
         ...oldRecordingTaskLog,
-        end_date_since_1970: now,
+        end_date_since_1970: date_since_1970,
       });
     }
 
@@ -65,8 +72,8 @@ export function createTaskLogService(doc: Doc): TaskLogService {
       id: logId,
       task: taskId,
       comment: "",
-      start_date_since_1970: now,
-      end_date_since_1970: now,
+      start_date_since_1970: date_since_1970,
+      end_date_since_1970: date_since_1970,
     });
 
     return {
@@ -74,17 +81,17 @@ export function createTaskLogService(doc: Doc): TaskLogService {
     };
   };
 
-  const finish: TaskLogService["finish"] = () => {
+  const finish: TaskLogService["finish"] = date_since_1970 => {
     const taskLog = recordingTaskLogMap.get(RecordingTaskLogValueKey);
+
     if (!taskLog) {
       return {
         code: CommonResultCode.success,
       };
     }
-    const now = Date.now();
     upsert({
       ...taskLog,
-      end_date_since_1970: now,
+      end_date_since_1970: date_since_1970,
     });
     recordingTaskLogMap.delete(RecordingTaskLogValueKey);
 
