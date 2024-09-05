@@ -72,3 +72,23 @@ export function isSameDay(date1: Date, date2: Date): boolean {
   // 比较年份、月份和日期
   return year1 === year2 && month1 === month2 && day1 === day2;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function debounce(func: any, wait: number, immediate: boolean) {
+  let timeout: NodeJS.Timeout | undefined;
+
+  return function () {
+    // @ts-expect-error function this
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const context = this;
+    // eslint-disable-next-line prefer-rest-params
+    const args = arguments;
+    clearTimeout(timeout);
+    if (immediate && !timeout) func.apply(context, args);
+
+    timeout = setTimeout(function () {
+      timeout = undefined;
+      if (!immediate) func.apply(context, args);
+    }, wait);
+  };
+}
