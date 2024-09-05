@@ -21,6 +21,21 @@ describe("core.service.TaskLogService", () => {
       taskLog: {
         notifyChange,
         notifyRecordingChange,
+        createWithIdTaskCommentStart_date_since_1970End_date_since_1970: (
+          id: string,
+          task: string,
+          comment: string,
+          start_date_since_1970: number,
+          end_date_since_1970: number | null
+        ) => {
+          return {
+            id,
+            task,
+            comment,
+            start_date_since_1970,
+            end_date_since_1970: end_date_since_1970 || Date.now(),
+          };
+        },
       },
     });
 
@@ -33,15 +48,15 @@ describe("core.service.TaskLogService", () => {
   });
 
   it("start should work", () => {
-    const result = taskLogService.start("task-1", "taskLog-1");
+    const result = taskLogService.start("task-1", "taskLog-1", Date.now());
 
     expect(result.code).toEqual(CommonResultCode.success);
     expect(notifyRecordingChange).toBeCalledTimes(1);
   });
 
   it("finish should work", () => {
-    taskLogService.start("task-1", "taskLog-1");
-    const result = taskLogService.finish();
+    taskLogService.start("task-1", "taskLog-1", Date.now());
+    const result = taskLogService.finish(Date.now());
 
     expect(result.code).toEqual(CommonResultCode.success);
     expect(notifyChange).toBeCalledTimes(1);
@@ -57,7 +72,7 @@ describe("core.service.TaskLogService", () => {
   });
 
   it("queryRecordingTaskLog should return log after start", () => {
-    taskLogService.start("task-1", "taskLog-1");
+    taskLogService.start("task-1", "taskLog-1", Date.now());
     const result = taskLogService.queryRecordingTaskLog();
 
     expect(result.code).toEqual(CommonResultCode.success);
@@ -66,8 +81,8 @@ describe("core.service.TaskLogService", () => {
   });
 
   it("queryRecordingTaskLog should return undefined after finish", () => {
-    taskLogService.start("task-1", "taskLog-1");
-    taskLogService.finish();
+    taskLogService.start("task-1", "taskLog-1", Date.now());
+    taskLogService.finish(Date.now());
     const result = taskLogService.queryRecordingTaskLog();
 
     expect(result.code).toEqual(CommonResultCode.success);
