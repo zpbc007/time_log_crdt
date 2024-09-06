@@ -6,3 +6,5 @@ export enum CommonResultCode {
   success = 1,
   fail = 0,
 }
+
+export const DocSyncEventName = "doc_sync";

@@ -1,20 +1,29 @@
-import { describe, expect, it, vi, beforeEach, afterAll } from "vitest";
-import { Doc } from "yjs";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { applyUpdateV2, Doc, encodeStateAsUpdateV2 } from "yjs";
 import {
   createTaskLogService,
   TaskLogService,
   UpdateCommentCode,
   UpsertCode,
 } from "../../../src/core/service/TaskLog.service";
-import { CommonResultCode } from "../../../src/core/common/type";
+import {
+  CommonResultCode,
+  DocSyncEventName,
+} from "../../../src/core/common/type";
 import { TaskLog } from "../../../src/core/model";
+import { EventBus } from "../../../src/core/common/eventbus";
+import { Result } from "../../../src/core/common/type";
+import { formatDate } from "../../utils/date";
 
 describe("core.service.TaskLogService", () => {
   let taskLogService: TaskLogService;
   let notifyChange;
   let notifyRecordingChange;
+  let eventbus: EventBus;
+  let rootDoc: Doc;
 
   beforeEach(() => {
+    vi.useFakeTimers();
     notifyChange = vi.fn();
     notifyRecordingChange = vi.fn();
     vi.stubGlobal("TL_CRDT_Native", {
@@ -39,12 +48,80 @@ describe("core.service.TaskLogService", () => {
       },
     });
 
-    const rootDoc = new Doc();
-    taskLogService = createTaskLogService(rootDoc);
+    rootDoc = new Doc();
+    eventbus = new EventBus();
+    taskLogService = createTaskLogService(rootDoc, eventbus);
   });
 
-  afterAll(() => {
+  afterEach(() => {
+    vi.restoreAllMocks();
     vi.unstubAllGlobals();
+  });
+
+  const upsertByDateArray = (
+    dataArray: [string, string][],
+    upsert: (taskLog: TaskLog) => Result<number>,
+    idPrefix: string = "id"
+  ) => {
+    const taskLogs: TaskLog[] = dataArray.map(([start, end], index) => {
+      return {
+        id: `${idPrefix}-taskLog-${index}`,
+        task: "task-1",
+        comment: "xxx",
+        start_date_since_1970: new Date(start).getTime(),
+        end_date_since_1970: new Date(end).getTime(),
+      };
+    });
+    taskLogs.forEach(item => upsert(item));
+  };
+
+  it("should resort meta after sync", async () => {
+    // prepare env
+    const remoteDoc = new Doc();
+    const remoteTaskLogService = createTaskLogService(
+      remoteDoc,
+      new EventBus()
+    );
+
+    // data
+    const localDateArray: [string, string][] = [
+      ["2024-05-01", "2024-05-03"],
+      ["2024-05-05", "2024-05-07"],
+      ["2024-05-09", "2024-05-11"],
+    ];
+    const remoteDateArray: [string, string][] = [
+      ["2024-04-15", "2024-04-17"],
+      ["2024-04-19", "2024-05-02"],
+      ["2024-05-08", "2024-05-12"],
+      ["2024-05-14", "2024-05-16"],
+    ];
+
+    // op
+    upsertByDateArray(localDateArray, taskLogService.upsert, "local");
+    upsertByDateArray(remoteDateArray, remoteTaskLogService.upsert, "remote");
+
+    const remoteUpdate = encodeStateAsUpdateV2(remoteDoc);
+    applyUpdateV2(rootDoc, remoteUpdate);
+    eventbus.emit(DocSyncEventName);
+
+    await vi.advanceTimersByTimeAsync(500);
+
+    const taskLogsResult = taskLogService.queryTaskLogsByDateRange(
+      new Date("2024-04-15").getTime(),
+      new Date("2024-05-12").getTime()
+    );
+
+    expect(taskLogsResult.code).toBe(CommonResultCode.success);
+    expect(
+      taskLogsResult.data.map(item =>
+        formatDate(new Date(item.start_date_since_1970))
+      )
+    ).toEqual(
+      [...localDateArray, ...remoteDateArray]
+        .map(item => new Date(item[0]).getTime())
+        .sort((a, b) => a - b)
+        .map(item => formatDate(new Date(item)))
+    );
   });
 
   it("start should work", () => {

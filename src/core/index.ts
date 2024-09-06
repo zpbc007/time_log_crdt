@@ -1,6 +1,7 @@
 import { applyUpdateV2, Doc, encodeStateAsUpdateV2 } from "yjs";
 import { createService } from "./service";
-import { CommonResultCode, Result } from "./common/type";
+import { CommonResultCode, DocSyncEventName, Result } from "./common/type";
+import { rootBus } from "./common/eventbus";
 
 const rootDoc: Doc = new Doc();
 let service: ReturnType<typeof createService> | undefined;
@@ -62,6 +63,8 @@ function sync(persistedState?: Uint8Array): Result<void> {
     };
   } else {
     applyUpdateV2(rootDoc, persistedState);
+    rootBus.emit(DocSyncEventName);
+
     return {
       code: CommonResultCode.success,
     };

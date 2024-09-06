@@ -1,5 +1,5 @@
 import { Doc } from "yjs";
-import { CommonResultCode, Result } from "../common/type";
+import { CommonResultCode, DocSyncEventName, Result } from "../common/type";
 import {
   fromNativeTaskLog,
   TaskLog,
@@ -12,7 +12,8 @@ import {
   TaskLogMetaTableKey,
   TaskLogTableKey,
 } from "./constants";
-import { binarySearchForYArray } from "../common/helper";
+import { binarySearchForYArray, debounce } from "../common/helper";
+import { EventBus } from "../common/eventbus";
 
 export type TaskLogService = {
   start: (
@@ -43,7 +44,10 @@ export enum UpdateCommentCode {
   noLog = 100,
 }
 
-export function createTaskLogService(doc: Doc): TaskLogService {
+export function createTaskLogService(
+  doc: Doc,
+  eventbus: EventBus
+): TaskLogService {
   const taskLogMap = doc.getMap<TaskLog>(TaskLogTableKey);
   const taskLogMetaArray = doc.getArray<TaskLogMeta>(TaskLogMetaTableKey);
   const recordingTaskLogMap = doc.getMap<TaskLog>(RecordingTaskLogTableKey);
@@ -54,6 +58,42 @@ export function createTaskLogService(doc: Doc): TaskLogService {
   recordingTaskLogMap.observe(() => {
     TL_CRDT_Native.taskLog.notifyRecordingChange();
   });
+
+  const processResort = async () => {
+    let i = 1;
+    while (i < taskLogMetaArray.length) {
+      if (
+        taskLogMetaArray.get(i).start_date_since_1970 <
+        taskLogMetaArray.get(i - 1).start_date_since_1970
+      ) {
+        doc.transact(() => {
+          resort(i);
+        });
+      }
+      await Promise.resolve();
+      i++;
+    }
+  };
+
+  const resort = (index: number) => {
+    const resortMeta = taskLogMetaArray.get(index);
+    if (!resortMeta) {
+      return;
+    }
+
+    taskLogMetaArray.delete(index);
+    const searchResult = binarySearchForYArray(
+      taskLogMetaArray,
+      meta => meta.start_date_since_1970 - resortMeta.start_date_since_1970
+    );
+
+    const targetIndex =
+      searchResult.result !== -1 ? searchResult.result : searchResult.left;
+    taskLogMetaArray.insert(targetIndex, [{ ...resortMeta }]);
+  };
+
+  // 同步文档后，需要重新排序
+  eventbus.on(DocSyncEventName, debounce(processResort, 300, false));
 
   const start: TaskLogService["start"] = (taskId, logId, date_since_1970) => {
     const oldRecordingTaskLog = recordingTaskLogMap.get(
