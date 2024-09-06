@@ -321,6 +321,9 @@ export function createTaskLogService(
     };
   };
 
+  // 加载后主动排序一次
+  processResort();
+
   return {
     start,
     finish,
