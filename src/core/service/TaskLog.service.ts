@@ -12,7 +12,7 @@ import {
   TaskLogMetaTableKey,
   TaskLogTableKey,
 } from "./constants";
-import { binarySearchForYArray, debounce } from "../common/helper";
+import { binarySearchForYArray } from "../common/helper";
 import { EventBus } from "../common/eventbus";
 
 export type TaskLogService = {
@@ -93,7 +93,7 @@ export function createTaskLogService(
   };
 
   // 同步文档后，需要重新排序
-  eventbus.on(DocSyncEventName, debounce(processResort, 300, false));
+  eventbus.on(DocSyncEventName, processResort);
 
   const start: TaskLogService["start"] = (taskId, logId, date_since_1970) => {
     const oldRecordingTaskLog = recordingTaskLogMap.get(
