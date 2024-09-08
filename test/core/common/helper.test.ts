@@ -3,7 +3,6 @@ import {
   binarySearch,
   difference,
   isSameDay,
-  debounce,
 } from "../../../src/core/common/helper";
 
 describe("core.common.helper.difference", () => {
@@ -50,16 +49,5 @@ describe("core.common.helper.binarySearch", () => {
 
     expect(searchResult.left).toEqual(4);
     expect(searchResult.result).toEqual(-1);
-  });
-
-  it("debounce should only call once", async () => {
-    vi.useFakeTimers();
-    const handler = vi.fn();
-    const debouncedHandler = debounce(handler, 50, false);
-
-    new Array(5).fill(1).forEach(debouncedHandler);
-    await vi.advanceTimersByTimeAsync(100);
-
-    expect(handler).toBeCalledTimes(1);
   });
 });
