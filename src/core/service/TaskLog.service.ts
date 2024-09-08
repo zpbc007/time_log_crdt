@@ -44,6 +44,8 @@ export enum UpdateCommentCode {
   noLog = 100,
 }
 
+const resortBatchSize = 50;
+
 export function createTaskLogService(
   doc: Doc,
   eventbus: EventBus
@@ -62,16 +64,25 @@ export function createTaskLogService(
   const processResort = async () => {
     let i = 1;
     while (i < taskLogMetaArray.length) {
-      if (
-        taskLogMetaArray.get(i).start_date_since_1970 <
-        taskLogMetaArray.get(i - 1).start_date_since_1970
-      ) {
-        doc.transact(() => {
-          resort(i);
-        });
-      }
+      doc.transact(() => {
+        processBatchResort(i, resortBatchSize);
+      });
       await Promise.resolve();
-      i++;
+      i += resortBatchSize;
+    }
+  };
+
+  const processBatchResort = (from: number, batchSize: number) => {
+    const right = from + batchSize;
+    while (from < taskLogMetaArray.length && from < right) {
+      if (
+        taskLogMetaArray.get(from).start_date_since_1970 <
+        taskLogMetaArray.get(from - 1).start_date_since_1970
+      ) {
+        resort(from);
+      }
+
+      from++;
     }
   };
 
