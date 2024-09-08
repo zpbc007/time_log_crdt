@@ -39,7 +39,7 @@ export function fromNativeTask(task: Task): Task {
     done: task.done,
     order: task.order,
     create_date_since_1970: task.create_date_since_1970,
-    parentTask: task.parentTask,
-    checkList: task.checkList,
+    parentTask: task.parentTask ? task.parentTask : undefined,
+    checkList: task.checkList ? task.checkList : undefined,
   };
 }
