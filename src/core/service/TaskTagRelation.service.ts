@@ -7,6 +7,7 @@ export type TaskTagRelationService = {
   upsert: (taskId: string, tagIds: string[]) => void;
   queryTagsByTask: (taskId: string) => Tag["id"][];
   queryTasksByTag: (tagId: string) => Task["id"][];
+  queryTasksByTags: (tagIds: string[]) => Task["id"][];
   deleteTask: (taskId: string) => void;
   deleteTags: (tagIds: string[]) => void;
 };
@@ -85,5 +86,19 @@ export function createTaskTagRelationService(doc: Doc): TaskTagRelationService {
     return taskIds || [];
   };
 
-  return { upsert, deleteTask, deleteTags, queryTagsByTask, queryTasksByTag };
+  const queryTasksByTags: TaskTagRelationService["queryTasksByTags"] =
+    tagIds => {
+      return Array.from(
+        new Set(tagIds.flatMap(tagId => queryTasksByTag(tagId)))
+      );
+    };
+
+  return {
+    upsert,
+    deleteTask,
+    deleteTags,
+    queryTagsByTask,
+    queryTasksByTag,
+    queryTasksByTags,
+  };
 }

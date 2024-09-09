@@ -13,6 +13,7 @@ export type TaskService = {
     includeDone: boolean
   ) => Result<Task[]>;
   queryByTag: (tagId: string, includeDone: boolean) => Result<Task[]>;
+  queryByTags: (tagIds: string[], includeDone: boolean) => Result<Task[]>;
   queryTags: (id: string) => Result<Tag["id"][]>;
   queryTagRelation: (ids: string[]) => Result<{ [taskId: string]: string[] }>;
   upsert: (task: Task, tagIds: string[]) => Result<void>;
@@ -73,18 +74,24 @@ export function createTaskService(doc: Doc): TaskService {
     };
   };
 
+  const queryByIdsWithDone = (ids: Task["id"][], includeDone: boolean) => {
+    return ids.reduce<Task[]>((acc, id) => {
+      const task = taskMap.get(id);
+      if (!task) {
+        return acc;
+      }
+
+      if (!includeDone && task.done) {
+        return acc;
+      }
+
+      acc.push(toNativeTask(task));
+      return acc;
+    }, []);
+  };
+
   const queryByIds: TaskService["queryByIds"] = ids => {
-    const tasks = ids
-      .map(id => {
-        const task = taskMap.get(id);
-
-        if (!task) {
-          return undefined;
-        }
-
-        return toNativeTask(task);
-      })
-      .filter(item => item) as Task[];
+    const tasks = queryByIdsWithDone(ids, true);
 
     return {
       code: CommonResultCode.success,
@@ -120,22 +127,20 @@ export function createTaskService(doc: Doc): TaskService {
 
   const queryByTag: TaskService["queryByTag"] = (tagId, includeDone) => {
     const taskIds = taskTagRelationService.queryTasksByTag(tagId);
-    const data = taskIds
-      .map(taskId => taskMap.get(taskId))
-      .filter(item => {
-        if (!item) {
-          return false;
-        }
-
-        if (!includeDone) {
-          return item.done == false;
-        } else {
-          return true;
-        }
-      }) as Task[];
+    const data = queryByIdsWithDone(taskIds, includeDone);
 
     return {
       data: data.map(toNativeTask),
+      code: CommonResultCode.success,
+    };
+  };
+
+  const queryByTags: TaskService["queryByTags"] = (tagIds, includeDone) => {
+    const taskIds = taskTagRelationService.queryTasksByTags(tagIds);
+    const data = queryByIdsWithDone(taskIds, includeDone);
+
+    return {
+      data,
       code: CommonResultCode.success,
     };
   };
@@ -199,6 +204,7 @@ export function createTaskService(doc: Doc): TaskService {
     queryByIds,
     queryByCheckList,
     queryByTag,
+    queryByTags,
     queryTags,
     queryTagRelation,
     upsert,
