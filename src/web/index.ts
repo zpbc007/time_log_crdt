@@ -2,6 +2,9 @@ import { TimeLogCRDT } from "@/core";
 import { Task } from "@/core/model";
 
 const NativeShim: typeof TL_CRDT_Native = {
+  info: {
+    disableChangeNotify: false,
+  },
   logger: {
     log: (msg: string) => {
       console.log(msg);

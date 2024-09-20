@@ -10,9 +10,18 @@ export type CheckListService = {
   delete: (id: string) => Result<void>;
 };
 
-export function createCheckListService(doc: Doc): CheckListService {
+export function createCheckListService(
+  doc: Doc,
+  disableChangeNotify: boolean
+): CheckListService {
   const taskInnerService = createTaskInnerService(doc);
   const checkListMap = doc.getMap<CheckList>(ChecklistTableKey);
+
+  if (!disableChangeNotify) {
+    checkListMap.observe(() => {
+      TL_CRDT_Native.checkList.notifyChange();
+    });
+  }
 
   const queryAll: CheckListService["queryAll"] = () => {
     return {
@@ -37,10 +46,6 @@ export function createCheckListService(doc: Doc): CheckListService {
       code: CommonResultCode.success,
     };
   };
-
-  checkListMap.observe(() => {
-    TL_CRDT_Native.checkList.notifyChange();
-  });
 
   return {
     queryAll,

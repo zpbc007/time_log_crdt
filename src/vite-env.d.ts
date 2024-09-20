@@ -5,6 +5,9 @@ import { CheckList, Tag, Task, TaskLog } from "./core/model";
 
 declare global {
   const TL_CRDT_Native: {
+    info: {
+      disableChangeNotify: boolean;
+    };
     logger: {
       log: (message: string) => void;
     };

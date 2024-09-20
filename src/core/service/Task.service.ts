@@ -45,13 +45,18 @@ export function createTaskInnerService(doc: Doc): TaskInnerService {
   };
 }
 
-export function createTaskService(doc: Doc): TaskService {
+export function createTaskService(
+  doc: Doc,
+  disableChangeNotify: boolean
+): TaskService {
   const taskMap = doc.getMap<Task>(TaskTableKey);
   const taskTagRelationService = createTaskTagRelationService(doc);
 
-  taskMap.observe(() => {
-    TL_CRDT_Native.task.notifyChange();
-  });
+  if (!disableChangeNotify) {
+    taskMap.observe(() => {
+      TL_CRDT_Native.task.notifyChange();
+    });
+  }
 
   const queryAll: TaskService["queryAll"] = includeDone => {
     let data = Array.from(taskMap.values());

@@ -48,18 +48,21 @@ const resortBatchSize = 50;
 
 export function createTaskLogService(
   doc: Doc,
-  eventbus: EventBus
+  eventbus: EventBus,
+  disableChangeNotify: boolean
 ): TaskLogService {
   const taskLogMap = doc.getMap<TaskLog>(TaskLogTableKey);
   const taskLogMetaArray = doc.getArray<TaskLogMeta>(TaskLogMetaTableKey);
   const recordingTaskLogMap = doc.getMap<TaskLog>(RecordingTaskLogTableKey);
 
-  taskLogMap.observe(() => {
-    TL_CRDT_Native.taskLog.notifyChange();
-  });
-  recordingTaskLogMap.observe(() => {
-    TL_CRDT_Native.taskLog.notifyRecordingChange();
-  });
+  if (!disableChangeNotify) {
+    taskLogMap.observe(() => {
+      TL_CRDT_Native.taskLog.notifyChange();
+    });
+    recordingTaskLogMap.observe(() => {
+      TL_CRDT_Native.taskLog.notifyRecordingChange();
+    });
+  }
 
   const processResort = async () => {
     let i = 1;

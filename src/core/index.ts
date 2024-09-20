@@ -27,7 +27,7 @@ function load(persistedState?: Uint8Array): Result<void> {
     applyUpdateV2(rootDoc, copyState);
   }
 
-  service = createService(rootDoc);
+  service = createService(rootDoc, TL_CRDT_Native.info.disableChangeNotify);
   loaded = true;
 
   return {

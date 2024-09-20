@@ -7,11 +7,15 @@ import { rootBus } from "../common/eventbus";
 export type { CheckListService } from "./CheckList.service";
 export * from "./constants";
 
-export function createService(doc: Doc) {
-  const checkListService = createCheckListService(doc);
-  const tagService = createTagService(doc);
-  const taskService = createTaskService(doc);
-  const taskLogService = createTaskLogService(doc, rootBus);
+export function createService(doc: Doc, disableChangeNotify: boolean) {
+  const checkListService = createCheckListService(doc, disableChangeNotify);
+  const tagService = createTagService(doc, disableChangeNotify);
+  const taskService = createTaskService(doc, disableChangeNotify);
+  const taskLogService = createTaskLogService(
+    doc,
+    rootBus,
+    disableChangeNotify
+  );
 
   return {
     checkList: checkListService,

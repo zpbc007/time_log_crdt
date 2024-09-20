@@ -10,13 +10,18 @@ export type TagService = {
   delete: (ids: [string]) => Result<void>;
 };
 
-export function createTagService(doc: Doc): TagService {
+export function createTagService(
+  doc: Doc,
+  disableChangeNotify: boolean
+): TagService {
   const tagMap = doc.getMap<Tag>(TagTableKey);
   const taskTagRelationService = createTaskTagRelationService(doc);
 
-  tagMap.observe(() => {
-    TL_CRDT_Native.tag.notifyChange();
-  });
+  if (!disableChangeNotify) {
+    tagMap.observe(() => {
+      TL_CRDT_Native.tag.notifyChange();
+    });
+  }
 
   const queryAll: TagService["queryAll"] = () => {
     return {
