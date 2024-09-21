@@ -21,9 +21,6 @@ function load(persistedState?: Uint8Array): Result<void> {
   if (persistedState !== undefined && persistedState !== null) {
     // 复制一份，swift 可以将传入的 state 释放
     const copyState = persistedState.slice();
-    TL_CRDT_Native.logger.log(
-      `load persistedState length: ${copyState.length}`
-    );
     applyUpdateV2(rootDoc, copyState);
   }
 
@@ -37,8 +34,6 @@ function load(persistedState?: Uint8Array): Result<void> {
 
 function save(): Result<{ size: number; sync: (_: Uint8Array) => void }> {
   const encodedState = encodeStateAsUpdateV2(rootDoc);
-
-  TL_CRDT_Native.logger.log(`will save data len: ${encodedState.length}`);
 
   return {
     code: CommonResultCode.success,
