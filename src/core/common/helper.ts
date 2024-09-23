@@ -12,23 +12,48 @@ function _binarySearch<T>(
   left: number,
   right: number,
   valueGetter: (index: number) => T,
-  compare: (a: T) => number
-) {
+  compare: (a: T) => number,
+  ignore: (a: T) => boolean
+): { result: number; left: number } {
   let result = -1; // 如果未找到元素，初始化结果为-1
 
-  while (left <= right) {
+  while (left < right) {
     const mid = Math.floor((left + right) / 2);
-    const compareResult = compare(valueGetter(mid));
-    if (compareResult === 0) {
-      // 找到目标元素，返回下标
-      result = mid;
-      break;
-    } else if (compareResult < 0) {
-      // 如果目标元素大于中间元素，则在右侧查找
-      left = mid + 1;
+    const value = valueGetter(mid);
+
+    // 当前元素需要忽略，左右两侧都得继续查找
+    if (ignore(value)) {
+      const leftResult = _binarySearch(left, mid, valueGetter, compare, ignore);
+      const rightResult = _binarySearch(
+        mid + 1,
+        right,
+        valueGetter,
+        compare,
+        ignore
+      );
+
+      return {
+        result:
+          leftResult.result != -1
+            ? leftResult.result
+            : rightResult.result != -1
+              ? rightResult.result
+              : -1,
+        left: leftResult.left < mid - 1 ? leftResult.left : rightResult.left,
+      };
     } else {
-      // 如果目标元素小于中间元素，则在左侧查找
-      right = mid - 1;
+      const compareResult = compare(valueGetter(mid));
+      if (compareResult === 0) {
+        // 找到目标元素，返回下标
+        result = mid;
+        break;
+      } else if (compareResult < 0) {
+        // 如果目标元素大于中间元素，则在右侧查找
+        left = mid + 1;
+      } else {
+        // 如果目标元素小于中间元素，则在左侧查找
+        right = mid;
+      }
     }
   }
 
@@ -37,26 +62,18 @@ function _binarySearch<T>(
 
 export function binarySearchForYArray<T>(
   arr: YArray<T>,
-  compare: (a: T) => number
+  compare: (a: T) => number,
+  ignore: (a: T) => boolean = () => false
 ) {
-  if (arr.length === 0) {
-    return {
-      result: -1,
-      left: 0,
-    };
-  }
-
-  return _binarySearch(0, arr.length - 1, index => arr.get(index), compare);
+  return _binarySearch(0, arr.length, index => arr.get(index), compare, ignore);
 }
 
-export function binarySearch<T>(arr: T[], compare: (a: T) => number) {
-  if (arr.length === 0) {
-    return {
-      result: -1,
-      left: 0,
-    };
-  }
-  return _binarySearch(0, arr.length - 1, index => arr[index], compare);
+export function binarySearch<T>(
+  arr: T[],
+  compare: (a: T) => number,
+  ignore: (a: T) => boolean = () => false
+) {
+  return _binarySearch(0, arr.length, index => arr[index], compare, ignore);
 }
 
 export function isSameDay(date1: Date, date2: Date): boolean {

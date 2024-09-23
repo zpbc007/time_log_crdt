@@ -49,7 +49,7 @@ const resortBatchSize = 50;
 export function createTaskLogService(
   doc: Doc,
   eventbus: EventBus,
-  disableChangeNotify: boolean
+  disableChangeNotify: boolean = false
 ): TaskLogService {
   const taskLogMap = doc.getMap<TaskLog>(TaskLogTableKey);
   const taskLogMetaArray = doc.getArray<TaskLogMeta>(TaskLogMetaTableKey);
@@ -186,7 +186,8 @@ export function createTaskLogService(
 
     const searchResult = binarySearchForYArray(
       taskLogMetaArray,
-      meta => meta.start_date_since_1970 - taskLog.start_date_since_1970
+      meta => meta.start_date_since_1970 - taskLog.start_date_since_1970,
+      item => item.id == taskLog.id
     );
 
     // 有一样的 start date

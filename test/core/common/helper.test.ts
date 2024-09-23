@@ -50,4 +50,35 @@ describe("core.common.helper.binarySearch", () => {
     expect(searchResult.left).toEqual(4);
     expect(searchResult.result).toEqual(-1);
   });
+
+  it("binarySearch [1, 3, 5, 7, 9, 11] for 3, ignore 7, result should be 1", () => {
+    const searchResult = binarySearch(
+      [1, 3, 5, 7, 9, 11],
+      item => item - 3,
+      item => item == 7
+    );
+
+    expect(searchResult.result).toEqual(1);
+  });
+
+  it("binarySearch [1, 3, 5, 7, 9, 11] for 2, ignore 7, result should be 1", () => {
+    const searchResult = binarySearch(
+      [1, 3, 5, 7, 9, 11],
+      item => item - 2,
+      item => item == 7
+    );
+
+    expect(searchResult.left).toEqual(1);
+  });
+
+  it("binarySearch [1, 3, 5, 5, 5, 5, 7, 9, 11] for 8, ignore 5, left should be 7", () => {
+    const searchResult = binarySearch(
+      [1, 3, 5, 5, 5, 5, 7, 9, 11],
+      item => item - 8,
+      item => item == 5
+    );
+
+    expect(searchResult.result).toEqual(-1);
+    expect(searchResult.left).toEqual(7);
+  });
 });

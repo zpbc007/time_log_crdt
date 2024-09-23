@@ -203,7 +203,10 @@ describe("core.service.TaskLogService", () => {
     };
 
     const firstResult = taskLogService.upsert(taskLog);
-    const secondResult = taskLogService.upsert(taskLog);
+    const secondResult = taskLogService.upsert({
+      ...taskLog,
+      id: "taskLog-2",
+    });
 
     expect(firstResult.code).toEqual(CommonResultCode.success);
     expect(secondResult.code).toEqual(UpsertCode.startDateDuplicate);
