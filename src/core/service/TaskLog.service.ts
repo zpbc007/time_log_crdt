@@ -25,7 +25,7 @@ export type TaskLogService = {
   queryRecordingTaskLog: () => Result<TaskLog | undefined>;
 
   updateComment: (logId: string, comment: string) => Result<void>;
-  upsert: (taskLog: TaskLog) => Result<number>;
+  upsert: (taskLog: TaskLog) => Result<string>;
   delete: (id: string) => Result<void>;
   queryTaskLogDateRange: () => Result<[number, number] | undefined>;
   queryTaskLogsByDateRange: (
@@ -194,7 +194,7 @@ export function createTaskLogService(
     if (searchResult.result !== -1) {
       return {
         code: UpsertCode.startDateDuplicate,
-        data: taskLogMetaArray.get(searchResult.result).start_date_since_1970,
+        data: taskLogMetaArray.get(searchResult.result).id,
       };
     }
 
@@ -210,7 +210,7 @@ export function createTaskLogService(
     ) {
       return {
         code: UpsertCode.startDateConflict,
-        data: prevMeta.end_date_since_1970,
+        data: prevMeta.id,
       };
     }
 
@@ -222,7 +222,7 @@ export function createTaskLogService(
     ) {
       return {
         code: UpsertCode.endDateConflict,
-        data: nextMeta.start_date_since_1970,
+        data: nextMeta.id,
       };
     }
 
@@ -237,7 +237,7 @@ export function createTaskLogService(
 
     return {
       code: CommonResultCode.success,
-      data: 0,
+      data: "",
     };
   };
 

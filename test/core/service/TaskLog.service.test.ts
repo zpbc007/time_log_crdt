@@ -210,7 +210,7 @@ describe("core.service.TaskLogService", () => {
 
     expect(firstResult.code).toEqual(CommonResultCode.success);
     expect(secondResult.code).toEqual(UpsertCode.startDateDuplicate);
-    expect(secondResult.data).toEqual(start);
+    expect(secondResult.data).toEqual(taskLog.id);
   });
 
   it("upsert should return startDateConflict when start date conflict", () => {
@@ -238,7 +238,7 @@ describe("core.service.TaskLogService", () => {
     const result = taskLogService.upsert(taskLog2);
 
     expect(result.code).toEqual(UpsertCode.startDateConflict);
-    expect(result.data).toEqual(end1);
+    expect(result.data).toEqual(taskLog1.id);
   });
 
   it("upsert should return endDateConflict when end date conflict", () => {
@@ -266,7 +266,7 @@ describe("core.service.TaskLogService", () => {
     const result = taskLogService.upsert(taskLog2);
 
     expect(result.code).toEqual(UpsertCode.endDateConflict);
-    expect(result.data).toEqual(start1);
+    expect(result.data).toEqual(taskLog1.id);
   });
 
   it("upsert should short taskLog by startDate", () => {
