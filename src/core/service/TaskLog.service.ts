@@ -24,7 +24,6 @@ export type TaskLogService = {
   finish: (date_since_1970: number) => Result<void>;
   queryRecordingTaskLog: () => Result<TaskLog | undefined>;
 
-  updateComment: (logId: string, comment: string) => Result<void>;
   upsert: (taskLog: TaskLog) => Result<string>;
   delete: (id: string) => Result<void>;
   queryTaskLogDateRange: () => Result<[number, number] | undefined>;
@@ -38,10 +37,6 @@ export enum UpsertCode {
   startDateDuplicate = 100,
   startDateConflict = 101,
   endDateConflict = 102,
-}
-
-export enum UpdateCommentCode {
-  noLog = 100,
 }
 
 const resortBatchSize = 50;
@@ -109,6 +104,34 @@ export function createTaskLogService(
   // 同步文档后，需要重新排序
   eventbus.on(DocSyncEventName, processResort);
 
+  function getPreMeta(
+    currentIndex: number,
+    currentId: string
+  ): TaskLogMeta | undefined {
+    if (currentIndex == 0) {
+      return undefined;
+    }
+
+    const target = taskLogMetaArray.get(currentIndex - 1);
+    if (target && target.id == currentId) {
+      return getPreMeta(currentIndex - 1, currentId);
+    }
+
+    return target;
+  }
+
+  function getNextMeta(
+    currentIndex: number,
+    currentId: string
+  ): TaskLogMeta | undefined {
+    const target = taskLogMetaArray.get(currentIndex);
+    if (target && target.id == currentId) {
+      return getNextMeta(currentIndex + 1, currentId);
+    }
+
+    return target;
+  }
+
   const start: TaskLogService["start"] = (taskId, logId, date_since_1970) => {
     const oldRecordingTaskLog = recordingTaskLogMap.get(
       RecordingTaskLogValueKey
@@ -163,24 +186,6 @@ export function createTaskLogService(
     };
   };
 
-  const updateComment: TaskLogService["updateComment"] = (logId, comment) => {
-    const targetTaskLog = taskLogMap.get(logId);
-    if (!targetTaskLog) {
-      return {
-        code: UpdateCommentCode.noLog,
-      };
-    }
-
-    taskLogMap.set(logId, {
-      ...targetTaskLog,
-      comment: comment,
-    });
-
-    return {
-      code: CommonResultCode.success,
-    };
-  };
-
   const upsert: TaskLogService["upsert"] = taskLog => {
     taskLog = fromNativeTaskLog(taskLog);
 
@@ -198,11 +203,7 @@ export function createTaskLogService(
       };
     }
 
-    const prevMeta =
-      searchResult.left === 0
-        ? undefined
-        : taskLogMetaArray.get(searchResult.left - 1);
-
+    const prevMeta = getPreMeta(searchResult.left, taskLog.id);
     // startDate 与前一个冲突
     if (
       prevMeta &&
@@ -215,7 +216,7 @@ export function createTaskLogService(
     }
 
     // endDate 与后一个冲突
-    const nextMeta = taskLogMetaArray.get(searchResult.left);
+    const nextMeta = getNextMeta(searchResult.left, taskLog.id);
     if (
       nextMeta &&
       taskLog.end_date_since_1970 > nextMeta.start_date_since_1970
@@ -226,13 +227,37 @@ export function createTaskLogService(
       };
     }
 
-    taskLogMetaArray.insert(searchResult.left, [
-      {
-        id: taskLog.id,
-        start_date_since_1970: taskLog.start_date_since_1970,
-        end_date_since_1970: taskLog.end_date_since_1970,
-      },
-    ]);
+    const oldTaskLog = taskLogMap.get(taskLog.id);
+    let oldIndex = -1;
+    if (oldTaskLog) {
+      oldIndex = binarySearchForYArray(
+        taskLogMetaArray,
+        meta => meta.start_date_since_1970 - oldTaskLog.start_date_since_1970
+      ).result;
+    }
+
+    doc.transact(() => {
+      // 先删除
+      if (oldIndex !== -1) {
+        taskLogMetaArray.delete(oldIndex);
+      }
+
+      // 再添加
+      taskLogMetaArray.insert(
+        oldIndex == -1
+          ? searchResult.left // 添加
+          : oldIndex < searchResult.left // 更新
+            ? searchResult.left - 1
+            : searchResult.left,
+        [
+          {
+            id: taskLog.id,
+            start_date_since_1970: taskLog.start_date_since_1970,
+            end_date_since_1970: taskLog.end_date_since_1970,
+          },
+        ]
+      );
+    });
     taskLogMap.set(taskLog.id, taskLog);
 
     return {
@@ -344,7 +369,6 @@ export function createTaskLogService(
     finish,
     queryRecordingTaskLog,
 
-    updateComment,
     upsert,
     delete: deleteFunc,
     queryTaskLogDateRange,

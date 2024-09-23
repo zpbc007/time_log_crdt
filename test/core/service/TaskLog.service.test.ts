@@ -3,7 +3,6 @@ import { applyUpdateV2, Doc, encodeStateAsUpdateV2 } from "yjs";
 import {
   createTaskLogService,
   TaskLogService,
-  UpdateCommentCode,
   UpsertCode,
 } from "../../../src/core/service/TaskLog.service";
 import {
@@ -60,7 +59,7 @@ describe("core.service.TaskLogService", () => {
 
   const upsertByDateArray = (
     dataArray: [string, string][],
-    upsert: (taskLog: TaskLog) => Result<number>,
+    upsert: (taskLog: TaskLog) => Result<string>,
     idPrefix: string = "id"
   ) => {
     const taskLogs: TaskLog[] = dataArray.map(([start, end], index) => {
@@ -165,29 +164,6 @@ describe("core.service.TaskLogService", () => {
     expect(result.code).toEqual(CommonResultCode.success);
     // @ts-expect-error should has data
     expect(result.data).toBeUndefined();
-  });
-
-  it("updateComment should return noLog when taskLog is empty", () => {
-    const result = taskLogService.updateComment("taskLog-1", "xxx");
-
-    expect(result.code).toEqual(UpdateCommentCode.noLog);
-  });
-
-  it("updateComment should success when taskLog exist", () => {
-    const start = new Date("2024-05-01").getTime();
-    const end = new Date("2024-05-02").getTime();
-    taskLogService.upsert({
-      id: "taskLog-1",
-      task: "task-1",
-      comment: "yyy",
-      start_date_since_1970: start,
-      end_date_since_1970: end,
-    });
-    const result = taskLogService.updateComment("taskLog-1", "xxx");
-    const taskLogs = taskLogService.queryTaskLogsByDateRange(start, end);
-
-    expect(result.code).toEqual(CommonResultCode.success);
-    expect(taskLogs.data[0].comment).toEqual("xxx");
   });
 
   it("upsert should return startDateDuplicate when start date same", () => {

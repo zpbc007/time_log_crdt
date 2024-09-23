@@ -46,6 +46,7 @@ function _binarySearch<T>(
       if (compareResult === 0) {
         // 找到目标元素，返回下标
         result = mid;
+        left = mid;
         break;
       } else if (compareResult < 0) {
         // 如果目标元素大于中间元素，则在右侧查找
