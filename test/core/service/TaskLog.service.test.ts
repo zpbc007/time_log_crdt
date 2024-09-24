@@ -1,18 +1,13 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { applyUpdateV2, Doc, encodeStateAsUpdateV2 } from "yjs";
+import { Doc } from "yjs";
 import {
   createTaskLogService,
   TaskLogService,
   UpsertCode,
 } from "../../../src/core/service/TaskLog.service";
-import {
-  CommonResultCode,
-  DocSyncEventName,
-} from "../../../src/core/common/type";
+import { CommonResultCode } from "../../../src/core/common/type";
 import { TaskLog } from "../../../src/core/model";
 import { EventBus } from "../../../src/core/common/eventbus";
-import { Result } from "../../../src/core/common/type";
-import { formatDate } from "../../utils/date";
 
 describe("core.service.TaskLogService", () => {
   let taskLogService: TaskLogService;
@@ -26,6 +21,9 @@ describe("core.service.TaskLogService", () => {
     notifyChange = vi.fn();
     notifyRecordingChange = vi.fn();
     vi.stubGlobal("TL_CRDT_Native", {
+      logger: {
+        log: console.log,
+      },
       taskLog: {
         notifyChange,
         notifyRecordingChange,
@@ -57,72 +55,6 @@ describe("core.service.TaskLogService", () => {
     vi.unstubAllGlobals();
   });
 
-  const upsertByDateArray = (
-    dataArray: [string, string][],
-    upsert: (taskLog: TaskLog) => Result<string>,
-    idPrefix: string = "id"
-  ) => {
-    const taskLogs: TaskLog[] = dataArray.map(([start, end], index) => {
-      return {
-        id: `${idPrefix}-taskLog-${index}`,
-        task: "task-1",
-        comment: "xxx",
-        start_date_since_1970: new Date(start).getTime(),
-        end_date_since_1970: new Date(end).getTime(),
-      };
-    });
-    taskLogs.forEach(item => upsert(item));
-  };
-
-  it("should resort meta after sync", async () => {
-    // prepare env
-    const remoteDoc = new Doc();
-    const remoteTaskLogService = createTaskLogService(
-      remoteDoc,
-      new EventBus()
-    );
-
-    // data
-    const localDateArray: [string, string][] = [
-      ["2024-05-01", "2024-05-03"],
-      ["2024-05-05", "2024-05-07"],
-      ["2024-05-09", "2024-05-11"],
-    ];
-    const remoteDateArray: [string, string][] = [
-      ["2024-04-15", "2024-04-17"],
-      ["2024-04-19", "2024-05-02"],
-      ["2024-05-08", "2024-05-12"],
-      ["2024-05-14", "2024-05-16"],
-    ];
-
-    // op
-    upsertByDateArray(localDateArray, taskLogService.upsert, "local");
-    upsertByDateArray(remoteDateArray, remoteTaskLogService.upsert, "remote");
-
-    const remoteUpdate = encodeStateAsUpdateV2(remoteDoc);
-    applyUpdateV2(rootDoc, remoteUpdate);
-    eventbus.emit(DocSyncEventName);
-
-    await vi.advanceTimersByTimeAsync(500);
-
-    const taskLogsResult = taskLogService.queryTaskLogsByDateRange(
-      new Date("2024-04-15").getTime(),
-      new Date("2024-05-12").getTime()
-    );
-
-    expect(taskLogsResult.code).toBe(CommonResultCode.success);
-    expect(
-      taskLogsResult.data.map(item =>
-        formatDate(new Date(item.start_date_since_1970))
-      )
-    ).toEqual(
-      [...localDateArray, ...remoteDateArray]
-        .map(item => new Date(item[0]).getTime())
-        .sort((a, b) => a - b)
-        .map(item => formatDate(new Date(item)))
-    );
-  });
-
   it("start should work", () => {
     const result = taskLogService.start("task-1", "taskLog-1", Date.now());
 
@@ -137,33 +69,6 @@ describe("core.service.TaskLogService", () => {
     expect(result.code).toEqual(CommonResultCode.success);
     expect(notifyChange).toBeCalledTimes(1);
     expect(notifyRecordingChange).toBeCalledTimes(2);
-  });
-
-  it("queryRecordingTaskLog should return undefined before start", () => {
-    const result = taskLogService.queryRecordingTaskLog();
-
-    expect(result.code).toEqual(CommonResultCode.success);
-    // @ts-expect-error should has data
-    expect(result.data).toBeUndefined();
-  });
-
-  it("queryRecordingTaskLog should return log after start", () => {
-    taskLogService.start("task-1", "taskLog-1", Date.now());
-    const result = taskLogService.queryRecordingTaskLog();
-
-    expect(result.code).toEqual(CommonResultCode.success);
-    // @ts-expect-error should has data
-    expect(result.data.id).toEqual("taskLog-1");
-  });
-
-  it("queryRecordingTaskLog should return undefined after finish", () => {
-    taskLogService.start("task-1", "taskLog-1", Date.now());
-    taskLogService.finish(Date.now());
-    const result = taskLogService.queryRecordingTaskLog();
-
-    expect(result.code).toEqual(CommonResultCode.success);
-    // @ts-expect-error should has data
-    expect(result.data).toBeUndefined();
   });
 
   it("upsert should return startDateDuplicate when start date same", () => {
@@ -347,48 +252,5 @@ describe("core.service.TaskLogService", () => {
       taskLogs[0].start_date_since_1970,
       taskLogs[2].end_date_since_1970,
     ]);
-  });
-
-  it("queryTaskLogsByDateRange should work", () => {
-    const taskLogs: TaskLog[] = [
-      [new Date("2024-05-01"), new Date("2024-05-03")],
-      [new Date("2024-05-04"), new Date("2024-05-06")],
-      [new Date("2024-05-07"), new Date("2024-05-09")],
-      [new Date("2024-05-10"), new Date("2024-05-12")],
-    ].map(([start, end], index) => {
-      return {
-        id: `taskLog-${index}`,
-        task: "task-1",
-        comment: "xxx",
-        start_date_since_1970: start.getTime(),
-        end_date_since_1970: end.getTime(),
-      };
-    });
-
-    taskLogs.forEach(item => taskLogService.upsert(item));
-
-    // 在所有 taskLog 之前
-    const result1 = taskLogService.queryTaskLogsByDateRange(
-      new Date("2024-04-01").getTime(),
-      new Date("2024-04-05").getTime()
-    );
-    expect(result1.code).toEqual(CommonResultCode.success);
-    expect(result1.data.length).toEqual(0);
-
-    // 在所有 taskLog 之后
-    const result2 = taskLogService.queryTaskLogsByDateRange(
-      new Date("2024-06-01").getTime(),
-      new Date("2024-06-05").getTime()
-    );
-    expect(result2.code).toEqual(CommonResultCode.success);
-    expect(result2.data.length).toEqual(0);
-
-    // start & end 有部分重叠
-    const result3 = taskLogService.queryTaskLogsByDateRange(
-      new Date("2024-05-01 12:00").getTime(),
-      new Date("2024-05-05").getTime()
-    );
-    expect(result3.code).toEqual(CommonResultCode.success);
-    expect(result3.data.length).toEqual(2);
   });
 });

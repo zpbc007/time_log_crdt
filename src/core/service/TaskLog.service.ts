@@ -348,10 +348,7 @@ export function createTaskLogService(
     return {
       code: CommonResultCode.success,
       data: taskLogMetaArray
-        .slice(
-          startIndex,
-          endIndex === taskLogMetaArray.length - 1 ? endIndex + 1 : endIndex
-        )
+        .slice(startIndex, endIndex)
         .map(meta => {
           const taskLog = taskLogMap.get(meta.id);
 
