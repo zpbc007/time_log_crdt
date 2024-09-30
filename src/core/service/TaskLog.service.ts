@@ -21,7 +21,7 @@ export type TaskLogService = {
     logId: string,
     date_since_1970: number
   ) => Result<void>;
-  finish: (date_since_1970: number) => Result<void>;
+  finish: (date_since_1970: number, comment: string) => Result<void>;
   queryRecordingTaskLog: () => Result<TaskLog | undefined>;
 
   upsert: (taskLog: TaskLog) => Result<string>;
@@ -158,7 +158,7 @@ export function createTaskLogService(
     };
   };
 
-  const finish: TaskLogService["finish"] = date_since_1970 => {
+  const finish: TaskLogService["finish"] = (date_since_1970, comment) => {
     const taskLog = recordingTaskLogMap.get(RecordingTaskLogValueKey);
 
     if (!taskLog) {
@@ -168,6 +168,7 @@ export function createTaskLogService(
     }
     upsert({
       ...taskLog,
+      comment,
       end_date_since_1970: date_since_1970,
     });
     recordingTaskLogMap.delete(RecordingTaskLogValueKey);
