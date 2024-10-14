@@ -25,6 +25,7 @@ const formats = Object.keys(fileName) as Array<keyof typeof fileName>;
 export default defineConfig({
   base: "./",
   build: {
+    minify: true,
     outDir: "./build/dist",
     lib: {
       entry: path.resolve(__dirname, "src/ios/index.ts"),

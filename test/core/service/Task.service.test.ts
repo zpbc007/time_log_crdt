@@ -42,7 +42,7 @@ describe("core.service.Task.service", () => {
     });
 
     rootDoc = new Doc();
-    taskService = createTaskService(rootDoc);
+    taskService = createTaskService(rootDoc, false);
   });
 
   it("upsert & query should work", () => {
