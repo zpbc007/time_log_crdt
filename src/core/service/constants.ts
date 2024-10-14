@@ -7,3 +7,4 @@ export const TaskLogTableKey = "task_log";
 export const TaskLogMetaTableKey = "task_log_meta";
 export const RecordingTaskLogTableKey = "recording_task_log";
 export const RecordingTaskLogValueKey = "recording_task_log_value";
+export const DaySettingTableKey = "day_setting";

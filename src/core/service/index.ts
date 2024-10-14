@@ -6,6 +6,7 @@ import { createTaskLogService } from "./TaskLog.service";
 import { rootBus } from "../common/eventbus";
 export type { CheckListService } from "./CheckList.service";
 export * from "./constants";
+import { createDaySettingService } from "./DaySetting.service";
 
 export function createService(doc: Doc, disableChangeNotify: boolean) {
   const checkListService = createCheckListService(doc, disableChangeNotify);
@@ -16,11 +17,13 @@ export function createService(doc: Doc, disableChangeNotify: boolean) {
     rootBus,
     disableChangeNotify
   );
+  const daySettingService = createDaySettingService(doc, disableChangeNotify);
 
   return {
     checkList: checkListService,
     tag: tagService,
     task: taskService,
     taskLog: taskLogService,
+    daySetting: daySettingService,
   };
 }

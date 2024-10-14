@@ -1,5 +1,6 @@
 import { TimeLogCRDT } from "@/core";
 import { Task } from "@/core/model";
+import { DaySetting } from "@/core/model/DaySettings";
 
 const NativeShim: typeof TL_CRDT_Native = {
   info: {
@@ -91,6 +92,22 @@ const NativeShim: typeof TL_CRDT_Native = {
   crypto: {
     getRandomValues(arr: Uint32Array) {
       return window.crypto.getRandomValues(arr);
+    },
+  },
+  daySetting: {
+    createWithDate_since_1970TargetReview: function (
+      date_since_1970: number,
+      target: string,
+      review: string
+    ): DaySetting {
+      return {
+        date_since_1970,
+        target,
+        review,
+      };
+    },
+    notifyChange: function (): void {
+      console.log("daySetting change");
     },
   },
 };

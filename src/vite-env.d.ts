@@ -2,6 +2,7 @@
 
 import { TimeLogCRDT } from "./core";
 import { CheckList, Tag, Task, TaskLog } from "./core/model";
+import { DaySetting } from "./core/model/DaySettings";
 
 declare global {
   const TL_CRDT_Native: {
@@ -47,6 +48,14 @@ declare global {
       ) => TaskLog;
       notifyChange: () => void;
       notifyRecordingChange: () => void;
+    };
+    daySetting: {
+      createWithDate_since_1970TargetReview: (
+        date_since_1970: number,
+        target: string,
+        review: string
+      ) => DaySetting;
+      notifyChange: () => void;
     };
     crypto: {
       getRandomValues: (_: Uint32Array) => Uint32Array | undefined;
