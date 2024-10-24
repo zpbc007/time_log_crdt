@@ -1,11 +1,16 @@
 import { Doc } from "yjs";
 import { CommonResultCode, Result } from "../common/type";
-import { DaySetting, fromNativeDaySetting } from "../model/DaySettings";
+import {
+  DaySetting,
+  fromNativeDaySetting,
+  toNativeDaySetting,
+} from "../model/DaySettings";
 import { DaySettingTableKey } from "./constants";
 
 export type DaySettingService = {
-  upsert: (daySetting: DaySetting) => Result<void>;
   queryByDate: (date_since_1970: number) => Result<DaySetting | undefined>;
+  upsert: (daySetting: DaySetting) => Result<void>;
+  upsertTarget: (date_since_1970: number, target: string) => Result<void>;
 };
 
 export function createDaySettingService(
@@ -29,17 +34,39 @@ export function createDaySettingService(
     };
   };
 
+  const upsertTarget: DaySettingService["upsertTarget"] = (
+    date_since_1970,
+    target
+  ) => {
+    const currentVal = daySettingMap.get(date_since_1970.toString());
+
+    daySettingMap.set(date_since_1970.toString(), {
+      ...(currentVal || {
+        date_since_1970,
+        target: "",
+        review: "",
+      }),
+      date_since_1970,
+      target,
+    });
+
+    return {
+      code: CommonResultCode.success,
+    };
+  };
+
   const queryByDate: DaySettingService["queryByDate"] = date_since_1970 => {
     const result = daySettingMap.get(date_since_1970.toString());
 
     return {
       code: CommonResultCode.success,
-      data: result,
+      data: result ? toNativeDaySetting(result) : undefined,
     };
   };
 
   return {
-    upsert,
     queryByDate,
+    upsert,
+    upsertTarget,
   };
 }
