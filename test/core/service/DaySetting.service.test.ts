@@ -17,11 +17,11 @@ describe("core.service.DaySetting.service", () => {
     vi.stubGlobal("TL_CRDT_Native", {
       daySetting: {
         notifyChange,
-        createWithDate_since_1970TargetReview: ({
+        createWithDate_since_1970TargetReview: (
           date_since_1970,
           target,
-          review,
-        }) => ({
+          review
+        ) => ({
           date_since_1970,
           target,
           review,
@@ -64,5 +64,36 @@ describe("core.service.DaySetting.service", () => {
     expect(queryResult.data.target).toEqual("target");
     // @ts-expect-error should has data
     expect(queryResult.data.review).toEqual("review");
+  });
+
+  it("upsertTarget should create model", () => {
+    const date = Date.now();
+
+    daySettingService.upsertTarget(date, "target");
+    const queryResult = daySettingService.queryByDate(date);
+
+    expect(queryResult.code).toBe(CommonResultCode.success);
+    // @ts-expect-error should has data
+    expect(queryResult.data.target).toEqual("target");
+    // @ts-expect-error should has data
+    expect(queryResult.data.review).toEqual("");
+  });
+
+  it("upsertTarget should update model", () => {
+    const date = Date.now();
+    daySettingService.upsert({
+      date_since_1970: Date.now(),
+      target: "old_target",
+      review: "old_review",
+    });
+
+    daySettingService.upsertTarget(date, "new_target");
+
+    const queryResult = daySettingService.queryByDate(date);
+    expect(queryResult.code).toBe(CommonResultCode.success);
+    // @ts-expect-error should has data
+    expect(queryResult.data.target).toEqual("new_target");
+    // @ts-expect-error should has data
+    expect(queryResult.data.review).toEqual("old_review");
   });
 });
