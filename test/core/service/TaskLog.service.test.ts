@@ -68,7 +68,6 @@ describe("core.service.TaskLogService", () => {
 
     expect(result.code).toEqual(CommonResultCode.success);
     expect(notifyChange).toBeCalledTimes(1);
-    expect(notifyChange).toBeCalledWith("taskLog-1");
     expect(notifyRecordingChange).toBeCalledTimes(2);
   });
 

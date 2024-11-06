@@ -51,15 +51,8 @@ export function createTaskLogService(
   const recordingTaskLogMap = doc.getMap<TaskLog>(RecordingTaskLogTableKey);
 
   if (!disableChangeNotify) {
-    taskLogMap.observe(event => {
-      const upsertKeys: string[] = [];
-      event.changes.keys.forEach((change, key) => {
-        if (change.action === "add" || change.action === "update") {
-          upsertKeys.push(key);
-        }
-      });
-
-      TL_CRDT_Native.taskLog.notifyChange(upsertKeys[0] || null);
+    taskLogMap.observe(() => {
+      TL_CRDT_Native.taskLog.notifyChange();
     });
     recordingTaskLogMap.observe(() => {
       TL_CRDT_Native.taskLog.notifyRecordingChange();

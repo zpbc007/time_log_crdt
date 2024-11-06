@@ -46,7 +46,7 @@ declare global {
         start_date_since_1970: number,
         end_date_since_1970: number
       ) => TaskLog;
-      notifyChange: (upsertId: string | null) => void;
+      notifyChange: () => void;
       notifyRecordingChange: () => void;
     };
     daySetting: {
