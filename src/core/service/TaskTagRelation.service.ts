@@ -1,13 +1,13 @@
 import { Doc } from "yjs";
-import { Tag, Task } from "../model";
+import { Tag, TLEvent } from "../model";
 import { Tag2TaskTableKey, Task2TagTableKey } from "./constants";
 import { difference } from "../common/helper";
 
 export type TaskTagRelationService = {
   upsert: (taskId: string, tagIds: string[]) => void;
   queryTagsByTask: (taskId: string) => Tag["id"][];
-  queryTasksByTag: (tagId: string) => Task["id"][];
-  queryTasksByTags: (tagIds: string[]) => Task["id"][];
+  queryTasksByTag: (tagId: string) => TLEvent["id"][];
+  queryTasksByTags: (tagIds: string[]) => TLEvent["id"][];
   deleteTask: (taskId: string) => void;
   deleteTags: (tagIds: string[]) => void;
 };

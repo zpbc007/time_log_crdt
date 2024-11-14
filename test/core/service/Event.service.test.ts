@@ -1,14 +1,14 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import {
-  createTaskService,
-  TaskService,
-} from "../../../src/core/service/Task.service";
+  createEventService,
+  EventService,
+} from "../../../src/core/service/Event.service";
 import { Doc } from "yjs";
-import { Task, toNativeTask } from "../../../src/core/model";
+import { TLEvent, toNativeEvent } from "../../../src/core/model";
 import { CommonResultCode } from "../../../src/core/common/type";
 
-describe("core.service.Task.service", () => {
-  let taskService: TaskService;
+describe("core.service.Event.service", () => {
+  let eventService: EventService;
   let notifyChange;
   let rootDoc: Doc;
 
@@ -16,7 +16,7 @@ describe("core.service.Task.service", () => {
     notifyChange = vi.fn();
 
     vi.stubGlobal("TL_CRDT_Native", {
-      task: {
+      event: {
         notifyChange,
         createWithIdNameCommentDoneOrderCreate_date_since_1970ParentTaskCheckList:
           (
@@ -42,131 +42,133 @@ describe("core.service.Task.service", () => {
     });
 
     rootDoc = new Doc();
-    taskService = createTaskService(rootDoc, false);
+    eventService = createEventService(rootDoc, false);
   });
 
   it("upsert & query should work", () => {
     const tagIds = new Array(5).fill(1).map((_, index) => `tag-id-${index}`);
-    const tasks: Task[] = new Array(10).fill(1).map((_, index) => {
+    const events: TLEvent[] = new Array(10).fill(1).map((_, index) => {
       return {
-        id: `task-id-${index}`,
-        name: `task-name-${index}`,
-        comment: `task-comment-${index}`,
+        id: `event-id-${index}`,
+        name: `event-name-${index}`,
+        comment: `event-comment-${index}`,
         done: index % 2 === 0,
         order: index,
         create_date_since_1970: Date.now(),
         checkList: index % 2 === 0 ? "checkList-1" : undefined,
       };
     });
-    tasks.forEach(task => {
-      taskService.upsert(task, [...tagIds]);
+    events.forEach(event => {
+      eventService.upsert(event, [...tagIds]);
     });
 
-    const queryAllWithoutDoneResult = taskService.queryAll(false);
-    const queryAllWithDone = taskService.queryAll(true);
+    const queryAllWithoutDoneResult = eventService.queryAll(false);
+    const queryAllWithDone = eventService.queryAll(true);
     expect(queryAllWithoutDoneResult.code).toEqual(CommonResultCode.success);
     expect(queryAllWithoutDoneResult.data.map(item => item.id)).toEqual(
-      tasks
+      events
         .map((item, index) => (index % 2 == 0 ? undefined : item.id))
         .filter(item => item)
     );
     expect(queryAllWithDone.code).toEqual(CommonResultCode.success);
     expect(queryAllWithDone.data.map(item => item.id)).toEqual(
-      tasks.map(item => item.id)
+      events.map(item => item.id)
     );
 
-    const queryByIdResult = taskService.queryById(tasks[0].id);
+    const queryByIdResult = eventService.queryById(events[0].id);
     expect(queryByIdResult.code).toEqual(CommonResultCode.success);
     // @ts-expect-error should has data
-    expect(queryByIdResult.data.id).toEqual(tasks[0].id);
+    expect(queryByIdResult.data.id).toEqual(events[0].id);
 
-    const queryByIdsResult = taskService.queryByIds(tasks.map(item => item.id));
+    const queryByIdsResult = eventService.queryByIds(
+      events.map(item => item.id)
+    );
     expect(queryByIdsResult.code).toEqual(CommonResultCode.success);
     expect(queryByIdsResult.data.map(item => item.id)).toEqual(
-      tasks.map(item => item.id)
+      events.map(item => item.id)
     );
 
-    const queryByCheckListResult = taskService.queryByCheckList(
+    const queryByCheckListResult = eventService.queryByCheckList(
       "checkList-1",
       true
     );
     expect(queryByCheckListResult.code).toEqual(CommonResultCode.success);
     expect(queryByCheckListResult.data.map(item => item.id)).toEqual(
-      tasks.filter((_, index) => index % 2 === 0).map(item => item.id)
+      events.filter((_, index) => index % 2 === 0).map(item => item.id)
     );
 
-    const queryByTagResult = taskService.queryByTag(tagIds[0], true);
+    const queryByTagResult = eventService.queryByTag(tagIds[0], true);
     expect(queryByTagResult.code).toEqual(CommonResultCode.success);
     expect(queryByTagResult.data.map(item => item.id)).toEqual(
-      tasks.map(item => item.id)
+      events.map(item => item.id)
     );
 
-    const queryTagsResult = taskService.queryTags(tasks[0].id);
+    const queryTagsResult = eventService.queryTags(events[0].id);
     expect(queryTagsResult.code).toEqual(CommonResultCode.success);
     expect(queryTagsResult.data).toEqual(tagIds);
 
-    const queryTagRelationResult = taskService.queryTagRelation(
-      tasks.map(item => item.id)
+    const queryTagRelationResult = eventService.queryTagRelation(
+      events.map(item => item.id)
     );
     expect(queryTagRelationResult.code).toEqual(CommonResultCode.success);
     expect(Object.keys(queryTagRelationResult.data).sort()).toEqual(
-      tasks.map(item => item.id)
+      events.map(item => item.id)
     );
     expect(Object.values(queryTagRelationResult.data)).toEqual(
-      tasks.map(() => tagIds)
+      events.map(() => tagIds)
     );
   });
 
   it("update should work", () => {
     const tagIds = new Array(5).fill(1).map((_, index) => `tag-id-${index}`);
-    const tasks: Task[] = new Array(10).fill(1).map((_, index) => {
+    const events: TLEvent[] = new Array(10).fill(1).map((_, index) => {
       return {
-        id: `task-id-${index}`,
-        name: `task-name-${index}`,
-        comment: `task-comment-${index}`,
+        id: `event-id-${index}`,
+        name: `event-name-${index}`,
+        comment: `event-comment-${index}`,
         done: index % 2 === 0,
         order: index,
         create_date_since_1970: Date.now(),
         checkList: index % 2 === 0 ? "checkList-1" : undefined,
       };
     });
-    tasks.forEach(task => {
-      taskService.upsert(task, [...tagIds]);
+    events.forEach(event => {
+      eventService.upsert(event, [...tagIds]);
     });
 
-    const updatedTasks = tasks.map(item => ({
+    const updatedEvents = events.map(item => ({
       ...item,
       name: `${item.name}-new`,
     }));
-    taskService.update(updatedTasks);
+    eventService.update(updatedEvents);
 
     expect(
-      taskService.queryByIds(updatedTasks.map(item => item.id)).data
-    ).toEqual(updatedTasks.map(toNativeTask));
+      eventService.queryByIds(updatedEvents.map(item => item.id)).data
+    ).toEqual(updatedEvents.map(toNativeEvent));
   });
 
   it("delete should work", () => {
     const tagIds = new Array(5).fill(1).map((_, index) => `tag-id-${index}`);
-    const tasks: Task[] = new Array(10).fill(1).map((_, index) => {
+    const events: TLEvent[] = new Array(10).fill(1).map((_, index) => {
       return {
-        id: `task-id-${index}`,
-        name: `task-name-${index}`,
-        comment: `task-comment-${index}`,
+        id: `event-id-${index}`,
+        name: `event-name-${index}`,
+        comment: `event-comment-${index}`,
         done: index % 2 === 0,
         order: index,
         create_date_since_1970: Date.now(),
         checkList: index % 2 === 0 ? "checkList-1" : undefined,
       };
     });
-    tasks.forEach(task => {
-      taskService.upsert(task, [...tagIds]);
+    events.forEach(event => {
+      eventService.upsert(event, [...tagIds]);
     });
 
-    taskService.delete(tasks[0].id);
+    eventService.delete(events[0].id);
     expect(
-      taskService
-        .queryByIds(tasks.map(item => item.id))
+      eventService
+        .queryByIds(events.map(item => item.id))
         .data.map(item => item.id)
-    ).toEqual(tasks.map(item => item.id).filter((_, index) => index !== 0));
+    ).toEqual(events.map(item => item.id).filter((_, index) => index !== 0));
   });
 });

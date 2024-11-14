@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 import { TimeLogCRDT } from "./core";
-import { CheckList, Tag, Task, TaskLog } from "./core/model";
+import { CheckList, Tag, TLEvent, TaskLog } from "./core/model";
 import { DaySetting } from "./core/model/DaySettings";
 
 declare global {
@@ -25,7 +25,7 @@ declare global {
       createWithIdName: (id: string, name: string) => Tag;
       notifyChange: () => void;
     };
-    task: {
+    event: {
       createWithIdNameCommentDoneOrderCreate_date_since_1970ParentTaskCheckList: (
         id: string,
         name: string,
@@ -35,7 +35,7 @@ declare global {
         create_date_since_1970: number,
         parentTask: string,
         checkList: string
-      ) => Task;
+      ) => TLEvent;
       notifyChange: () => void;
     };
     taskLog: {

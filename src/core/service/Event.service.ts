@@ -1,23 +1,23 @@
 import { Doc } from "yjs";
 import { CommonResultCode, Result } from "../common/type";
-import { fromNativeTask, Tag, Task, toNativeTask } from "../model";
-import { TaskTableKey } from "./constants";
+import { fromNativeTask, Tag, TLEvent, toNativeEvent } from "../model";
+import { EventTableKey } from "./constants";
 import { createTaskTagRelationService } from "./TaskTagRelation.service";
 
-export type TaskService = {
-  queryAll: (includeDone: boolean) => Result<Task[]>;
-  queryById: (id: string) => Result<Task | undefined>;
-  queryByIds: (ids: string[]) => Result<Task[]>;
+export type EventService = {
+  queryAll: (includeDone: boolean) => Result<TLEvent[]>;
+  queryById: (id: string) => Result<TLEvent | undefined>;
+  queryByIds: (ids: string[]) => Result<TLEvent[]>;
   queryByCheckList: (
     checkListID: string | null,
     includeDone: boolean
-  ) => Result<Task[]>;
-  queryByTag: (tagId: string, includeDone: boolean) => Result<Task[]>;
-  queryByTags: (tagIds: string[], includeDone: boolean) => Result<Task[]>;
+  ) => Result<TLEvent[]>;
+  queryByTag: (tagId: string, includeDone: boolean) => Result<TLEvent[]>;
+  queryByTags: (tagIds: string[], includeDone: boolean) => Result<TLEvent[]>;
   queryTags: (id: string) => Result<Tag["id"][]>;
   queryTagRelation: (ids: string[]) => Result<{ [taskId: string]: string[] }>;
-  upsert: (task: Task, tagIds: string[]) => Result<void>;
-  update: (tasks: Task[]) => Result<void>;
+  upsert: (task: TLEvent, tagIds: string[]) => Result<void>;
+  update: (tasks: TLEvent[]) => Result<void>;
   delete: (id: string) => Result<void>;
 };
 
@@ -26,7 +26,7 @@ export type TaskInnerService = {
 };
 
 export function createTaskInnerService(doc: Doc): TaskInnerService {
-  const taskMap = doc.getMap<Task>(TaskTableKey);
+  const taskMap = doc.getMap<TLEvent>(EventTableKey);
 
   const removeCheckListInfo: TaskInnerService["removeCheckListInfo"] =
     checkListId => {
@@ -45,42 +45,42 @@ export function createTaskInnerService(doc: Doc): TaskInnerService {
   };
 }
 
-export function createTaskService(
+export function createEventService(
   doc: Doc,
   disableChangeNotify: boolean
-): TaskService {
-  const taskMap = doc.getMap<Task>(TaskTableKey);
+): EventService {
+  const taskMap = doc.getMap<TLEvent>(EventTableKey);
   const taskTagRelationService = createTaskTagRelationService(doc);
 
   if (!disableChangeNotify) {
     taskMap.observe(() => {
-      TL_CRDT_Native.task.notifyChange();
+      TL_CRDT_Native.event.notifyChange();
     });
   }
 
-  const queryAll: TaskService["queryAll"] = includeDone => {
+  const queryAll: EventService["queryAll"] = includeDone => {
     let data = Array.from(taskMap.values());
     if (!includeDone) {
       data = data.filter(item => !item.done);
     }
 
     return {
-      data: data.map(toNativeTask),
+      data: data.map(toNativeEvent),
       code: CommonResultCode.success,
     };
   };
 
-  const queryById: TaskService["queryById"] = id => {
+  const queryById: EventService["queryById"] = id => {
     const targetTask = taskMap.get(id);
 
     return {
-      data: targetTask ? toNativeTask(targetTask) : null,
+      data: targetTask ? toNativeEvent(targetTask) : null,
       code: CommonResultCode.success,
     };
   };
 
-  const queryByIdsWithDone = (ids: Task["id"][], includeDone: boolean) => {
-    return ids.reduce<Task[]>((acc, id) => {
+  const queryByIdsWithDone = (ids: TLEvent["id"][], includeDone: boolean) => {
+    return ids.reduce<TLEvent[]>((acc, id) => {
       const task = taskMap.get(id);
       if (!task) {
         return acc;
@@ -90,12 +90,12 @@ export function createTaskService(
         return acc;
       }
 
-      acc.push(toNativeTask(task));
+      acc.push(toNativeEvent(task));
       return acc;
     }, []);
   };
 
-  const queryByIds: TaskService["queryByIds"] = ids => {
+  const queryByIds: EventService["queryByIds"] = ids => {
     const tasks = queryByIdsWithDone(ids, true);
 
     return {
@@ -104,7 +104,7 @@ export function createTaskService(
     };
   };
 
-  const queryByCheckList: TaskService["queryByCheckList"] = (
+  const queryByCheckList: EventService["queryByCheckList"] = (
     checkListID,
     includeDone
   ) => {
@@ -122,7 +122,7 @@ export function createTaskService(
 
         return result;
       })
-      .map(toNativeTask);
+      .map(toNativeEvent);
 
     return {
       data,
@@ -130,17 +130,17 @@ export function createTaskService(
     };
   };
 
-  const queryByTag: TaskService["queryByTag"] = (tagId, includeDone) => {
+  const queryByTag: EventService["queryByTag"] = (tagId, includeDone) => {
     const taskIds = taskTagRelationService.queryTasksByTag(tagId);
     const data = queryByIdsWithDone(taskIds, includeDone);
 
     return {
-      data: data.map(toNativeTask),
+      data: data.map(toNativeEvent),
       code: CommonResultCode.success,
     };
   };
 
-  const queryByTags: TaskService["queryByTags"] = (tagIds, includeDone) => {
+  const queryByTags: EventService["queryByTags"] = (tagIds, includeDone) => {
     const taskIds = taskTagRelationService.queryTasksByTags(tagIds);
     const data = queryByIdsWithDone(taskIds, includeDone);
 
@@ -150,7 +150,7 @@ export function createTaskService(
     };
   };
 
-  const queryTags: TaskService["queryTags"] = taskId => {
+  const queryTags: EventService["queryTags"] = taskId => {
     const tagIds = taskTagRelationService.queryTagsByTask(taskId);
 
     return {
@@ -159,7 +159,7 @@ export function createTaskService(
     };
   };
 
-  const queryTagRelation: TaskService["queryTagRelation"] = taskIds => {
+  const queryTagRelation: EventService["queryTagRelation"] = taskIds => {
     const relation = taskIds.reduce<{ [taskId: string]: string[] }>(
       (acc, taskId) => {
         acc[taskId] = taskTagRelationService.queryTagsByTask(taskId);
@@ -175,7 +175,7 @@ export function createTaskService(
     };
   };
 
-  const upsert: TaskService["upsert"] = (task, tagIds) => {
+  const upsert: EventService["upsert"] = (task, tagIds) => {
     taskMap.set(task.id, fromNativeTask(task));
     taskTagRelationService.upsert(task.id, tagIds);
 
@@ -184,7 +184,7 @@ export function createTaskService(
     };
   };
 
-  const update: TaskService["update"] = tasks => {
+  const update: EventService["update"] = tasks => {
     tasks.forEach(task => {
       taskMap.set(task.id, fromNativeTask(task));
     });
@@ -194,7 +194,7 @@ export function createTaskService(
     };
   };
 
-  const deleteFunc: TaskService["delete"] = taskId => {
+  const deleteFunc: EventService["delete"] = taskId => {
     taskMap.delete(taskId);
     taskTagRelationService.deleteTask(taskId);
 

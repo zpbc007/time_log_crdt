@@ -2,7 +2,7 @@ import { Doc } from "yjs";
 import { ChecklistTableKey } from "./constants";
 import { CheckList, fromNativeCheckList, toNativeCheckList } from "../model";
 import { CommonResultCode, Result } from "../common/type";
-import { createTaskInnerService } from "./Task.service";
+import { createTaskInnerService } from "./Event.service";
 
 export type CheckListService = {
   queryAll: () => Result<CheckList[]>;
