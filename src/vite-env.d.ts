@@ -26,14 +26,12 @@ declare global {
       notifyChange: () => void;
     };
     event: {
-      createWithIdNameCommentDoneOrderCreate_date_since_1970ParentTaskCheckList: (
+      createWithIdNameCommentArchivedCreate_date_since_1970CheckList: (
         id: string,
         name: string,
         comment: string,
-        done: boolean,
-        order: number,
+        archived: boolean,
         create_date_since_1970: number,
-        parentTask: string,
         checkList: string
       ) => TLEvent;
       notifyChange: () => void;

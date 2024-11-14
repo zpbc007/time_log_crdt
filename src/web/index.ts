@@ -41,24 +41,20 @@ const NativeShim: typeof TL_CRDT_Native = {
     },
   },
   event: {
-    createWithIdNameCommentDoneOrderCreate_date_since_1970ParentTaskCheckList: (
+    createWithIdNameCommentArchivedCreate_date_since_1970CheckList: (
       id: string,
       name: string,
       comment: string,
-      done: boolean,
-      order: number,
+      archived: boolean,
       create_date_since_1970: number,
-      parentTask: string | null,
       checkList: string | null
     ) => {
       return {
         id,
         name,
         comment,
-        done,
-        order,
+        archived,
         create_date_since_1970,
-        parentTask,
         checkList,
       } as TLEvent;
     },

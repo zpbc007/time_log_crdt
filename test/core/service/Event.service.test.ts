@@ -18,26 +18,21 @@ describe("core.service.Event.service", () => {
     vi.stubGlobal("TL_CRDT_Native", {
       event: {
         notifyChange,
-        createWithIdNameCommentDoneOrderCreate_date_since_1970ParentTaskCheckList:
-          (
-            id: string,
-            name: string,
-            comment: string,
-            done: boolean,
-            order: number,
-            create_date_since_1970: number,
-            parentTask: string,
-            checkList: string
-          ) => ({
-            id,
-            name,
-            comment,
-            done,
-            order,
-            create_date_since_1970,
-            parentTask,
-            checkList,
-          }),
+        createWithIdNameCommentArchivedCreate_date_since_1970CheckList: (
+          id: string,
+          name: string,
+          comment: string,
+          archived: boolean,
+          create_date_since_1970: number,
+          checkList: string
+        ) => ({
+          id,
+          name,
+          comment,
+          archived,
+          create_date_since_1970,
+          checkList,
+        }),
       },
     });
 
@@ -52,8 +47,7 @@ describe("core.service.Event.service", () => {
         id: `event-id-${index}`,
         name: `event-name-${index}`,
         comment: `event-comment-${index}`,
-        done: index % 2 === 0,
-        order: index,
+        archived: index % 2 === 0,
         create_date_since_1970: Date.now(),
         checkList: index % 2 === 0 ? "checkList-1" : undefined,
       };
@@ -126,8 +120,7 @@ describe("core.service.Event.service", () => {
         id: `event-id-${index}`,
         name: `event-name-${index}`,
         comment: `event-comment-${index}`,
-        done: index % 2 === 0,
-        order: index,
+        archived: index % 2 === 0,
         create_date_since_1970: Date.now(),
         checkList: index % 2 === 0 ? "checkList-1" : undefined,
       };
@@ -154,8 +147,7 @@ describe("core.service.Event.service", () => {
         id: `event-id-${index}`,
         name: `event-name-${index}`,
         comment: `event-comment-${index}`,
-        done: index % 2 === 0,
-        order: index,
+        archived: index % 2 === 0,
         create_date_since_1970: Date.now(),
         checkList: index % 2 === 0 ? "checkList-1" : undefined,
       };

@@ -2,10 +2,8 @@ export type TLEvent = {
   id: string;
   name: string;
   comment: string;
-  done: boolean;
-  order: number;
+  archived: boolean;
   create_date_since_1970: number;
-  parentTask?: string;
   checkList?: string;
 };
 
@@ -13,20 +11,16 @@ export function toNativeEvent({
   id,
   name,
   comment,
-  done,
-  order,
+  archived,
   create_date_since_1970,
-  parentTask,
   checkList,
 }: TLEvent): TLEvent {
-  return TL_CRDT_Native.event.createWithIdNameCommentDoneOrderCreate_date_since_1970ParentTaskCheckList(
+  return TL_CRDT_Native.event.createWithIdNameCommentArchivedCreate_date_since_1970CheckList(
     id,
     name,
     comment,
-    done,
-    order,
+    archived,
     create_date_since_1970,
-    parentTask || "",
     checkList || ""
   );
 }
@@ -36,10 +30,8 @@ export function fromNativeTask(event: TLEvent): TLEvent {
     id: event.id,
     name: event.name,
     comment: event.comment,
-    done: event.done,
-    order: event.order,
+    archived: event.archived,
     create_date_since_1970: event.create_date_since_1970,
-    parentTask: event.parentTask ? event.parentTask : undefined,
     checkList: event.checkList ? event.checkList : undefined,
   };
 }

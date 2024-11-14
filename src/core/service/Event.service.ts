@@ -5,7 +5,7 @@ import { EventTableKey } from "./constants";
 import { createTaskTagRelationService } from "./TaskTagRelation.service";
 
 export type EventService = {
-  queryAll: (includeDone: boolean) => Result<TLEvent[]>;
+  queryAll: (includeArchived: boolean) => Result<TLEvent[]>;
   queryById: (id: string) => Result<TLEvent | undefined>;
   queryByIds: (ids: string[]) => Result<TLEvent[]>;
   queryByCheckList: (
@@ -58,10 +58,10 @@ export function createEventService(
     });
   }
 
-  const queryAll: EventService["queryAll"] = includeDone => {
+  const queryAll: EventService["queryAll"] = includeArchived => {
     let data = Array.from(taskMap.values());
-    if (!includeDone) {
-      data = data.filter(item => !item.done);
+    if (!includeArchived) {
+      data = data.filter(item => !item.archived);
     }
 
     return {
@@ -79,14 +79,17 @@ export function createEventService(
     };
   };
 
-  const queryByIdsWithDone = (ids: TLEvent["id"][], includeDone: boolean) => {
+  const queryByIdsWithDone = (
+    ids: TLEvent["id"][],
+    includeArchived: boolean
+  ) => {
     return ids.reduce<TLEvent[]>((acc, id) => {
       const task = taskMap.get(id);
       if (!task) {
         return acc;
       }
 
-      if (!includeDone && task.done) {
+      if (!includeArchived && task.archived) {
         return acc;
       }
 
@@ -106,7 +109,7 @@ export function createEventService(
 
   const queryByCheckList: EventService["queryByCheckList"] = (
     checkListID,
-    includeDone
+    includeArchived
   ) => {
     const data = Array.from(taskMap.values())
       .filter(item => {
@@ -116,8 +119,8 @@ export function createEventService(
         } else {
           result = result && item.checkList == checkListID;
         }
-        if (!includeDone) {
-          result = result && !item.done;
+        if (!includeArchived) {
+          result = result && !item.archived;
         }
 
         return result;
