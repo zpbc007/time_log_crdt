@@ -22,16 +22,16 @@ export type EventService = {
 };
 
 export type TaskInnerService = {
-  removeCheckListInfo: (checkListId: string) => void;
+  removeCategoryInfo: (categoryId: string) => void;
 };
 
 export function createTaskInnerService(doc: Doc): TaskInnerService {
   const taskMap = doc.getMap<TLEvent>(EventTableKey);
 
-  const removeCheckListInfo: TaskInnerService["removeCheckListInfo"] =
-    checkListId => {
+  const removeCategoryInfo: TaskInnerService["removeCategoryInfo"] =
+    categoryId => {
       Array.from(taskMap.values())
-        .filter(item => item.checkList == checkListId)
+        .filter(item => item.checkList == categoryId)
         .forEach(item => {
           taskMap.set(item.id, {
             ...item,
@@ -41,7 +41,7 @@ export function createTaskInnerService(doc: Doc): TaskInnerService {
     };
 
   return {
-    removeCheckListInfo,
+    removeCategoryInfo: removeCategoryInfo,
   };
 }
 

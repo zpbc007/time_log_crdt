@@ -1,4 +1,4 @@
-export const ChecklistTableKey = "checklist";
+export const CategoryTableKey = "category";
 export const TagTableKey = "tag";
 export const EventTableKey = "event";
 export const Task2TagTableKey = "task2tag";

@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 import { TimeLogCRDT } from "./core";
-import { CheckList, Tag, TLEvent, TaskLog } from "./core/model";
+import { Category, Tag, TLEvent, TaskLog } from "./core/model";
 import { DaySetting } from "./core/model/DaySettings";
 
 declare global {
@@ -12,13 +12,13 @@ declare global {
     logger: {
       log: (message: string) => void;
     };
-    checkList: {
+    category: {
       createWithIdNameColorHexCreate_date_since_1970: (
         id: string,
         name: string,
         colorHex: string,
         create_date_since_1970: number
-      ) => CheckList;
+      ) => Category;
       notifyChange: () => void;
     };
     tag: {

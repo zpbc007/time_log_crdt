@@ -1,15 +1,15 @@
 import { Doc } from "yjs";
-import { createCheckListService } from "./CheckList.service";
+import { createCategoryService } from "./Category.service";
 import { createTagService } from "./Tag.service";
 import { createEventService } from "./Event.service";
 import { createTaskLogService } from "./TaskLog.service";
 import { rootBus } from "../common/eventbus";
-export type { CheckListService } from "./CheckList.service";
+export type { CategoryService } from "./Category.service";
 export * from "./constants";
 import { createDaySettingService } from "./DaySetting.service";
 
 export function createService(doc: Doc, disableChangeNotify: boolean) {
-  const checkListService = createCheckListService(doc, disableChangeNotify);
+  const categoryService = createCategoryService(doc, disableChangeNotify);
   const tagService = createTagService(doc, disableChangeNotify);
   const eventService = createEventService(doc, disableChangeNotify);
   const taskLogService = createTaskLogService(
@@ -20,7 +20,7 @@ export function createService(doc: Doc, disableChangeNotify: boolean) {
   const daySettingService = createDaySettingService(doc, disableChangeNotify);
 
   return {
-    checkList: checkListService,
+    category: categoryService,
     tag: tagService,
     event: eventService,
     taskLog: taskLogService,

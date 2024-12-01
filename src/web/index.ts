@@ -11,7 +11,7 @@ const NativeShim: typeof TL_CRDT_Native = {
       console.log(msg);
     },
   },
-  checkList: {
+  category: {
     createWithIdNameColorHexCreate_date_since_1970(
       id,
       name,
