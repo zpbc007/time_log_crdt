@@ -26,13 +26,13 @@ declare global {
       notifyChange: () => void;
     };
     event: {
-      createWithIdNameCommentArchivedCreate_date_since_1970CheckList: (
+      createWithIdNameCommentArchivedCreate_date_since_1970Category: (
         id: string,
         name: string,
         comment: string,
         archived: boolean,
         create_date_since_1970: number,
-        checkList: string
+        category: string
       ) => TLEvent;
       notifyChange: () => void;
     };

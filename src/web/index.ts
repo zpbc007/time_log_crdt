@@ -26,7 +26,7 @@ const NativeShim: typeof TL_CRDT_Native = {
       };
     },
     notifyChange: () => {
-      console.log("checklist change!");
+      console.log("category change!");
     },
   },
   tag: {
@@ -41,13 +41,13 @@ const NativeShim: typeof TL_CRDT_Native = {
     },
   },
   event: {
-    createWithIdNameCommentArchivedCreate_date_since_1970CheckList: (
+    createWithIdNameCommentArchivedCreate_date_since_1970Category: (
       id: string,
       name: string,
       comment: string,
       archived: boolean,
       create_date_since_1970: number,
-      checkList: string | null
+      category: string | null
     ) => {
       return {
         id,
@@ -55,7 +55,7 @@ const NativeShim: typeof TL_CRDT_Native = {
         comment,
         archived,
         create_date_since_1970,
-        checkList,
+        category: category,
       } as TLEvent;
     },
     notifyChange: () => {

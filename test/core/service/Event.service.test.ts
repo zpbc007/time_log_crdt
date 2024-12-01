@@ -18,20 +18,20 @@ describe("core.service.Event.service", () => {
     vi.stubGlobal("TL_CRDT_Native", {
       event: {
         notifyChange,
-        createWithIdNameCommentArchivedCreate_date_since_1970CheckList: (
+        createWithIdNameCommentArchivedCreate_date_since_1970Category: (
           id: string,
           name: string,
           comment: string,
           archived: boolean,
           create_date_since_1970: number,
-          checkList: string
+          category: string
         ) => ({
           id,
           name,
           comment,
           archived,
           create_date_since_1970,
-          checkList,
+          category,
         }),
       },
     });
@@ -49,7 +49,7 @@ describe("core.service.Event.service", () => {
         comment: `event-comment-${index}`,
         archived: index % 2 === 0,
         create_date_since_1970: Date.now(),
-        checkList: index % 2 === 0 ? "checkList-1" : undefined,
+        category: index % 2 === 0 ? "category-1" : undefined,
       };
     });
     events.forEach(event => {
@@ -82,12 +82,12 @@ describe("core.service.Event.service", () => {
       events.map(item => item.id)
     );
 
-    const queryByCheckListResult = eventService.queryByCheckList(
-      "checkList-1",
+    const queryByCategoryResult = eventService.queryByCategory(
+      "category-1",
       true
     );
-    expect(queryByCheckListResult.code).toEqual(CommonResultCode.success);
-    expect(queryByCheckListResult.data.map(item => item.id)).toEqual(
+    expect(queryByCategoryResult.code).toEqual(CommonResultCode.success);
+    expect(queryByCategoryResult.data.map(item => item.id)).toEqual(
       events.filter((_, index) => index % 2 === 0).map(item => item.id)
     );
 
@@ -122,7 +122,7 @@ describe("core.service.Event.service", () => {
         comment: `event-comment-${index}`,
         archived: index % 2 === 0,
         create_date_since_1970: Date.now(),
-        checkList: index % 2 === 0 ? "checkList-1" : undefined,
+        category: index % 2 === 0 ? "category-1" : undefined,
       };
     });
     events.forEach(event => {
@@ -149,7 +149,7 @@ describe("core.service.Event.service", () => {
         comment: `event-comment-${index}`,
         archived: index % 2 === 0,
         create_date_since_1970: Date.now(),
-        checkList: index % 2 === 0 ? "checkList-1" : undefined,
+        category: index % 2 === 0 ? "category-1" : undefined,
       };
     });
     events.forEach(event => {

@@ -8,8 +8,8 @@ export type EventService = {
   queryAll: (includeArchived: boolean) => Result<TLEvent[]>;
   queryById: (id: string) => Result<TLEvent | undefined>;
   queryByIds: (ids: string[]) => Result<TLEvent[]>;
-  queryByCheckList: (
-    checkListID: string | null,
+  queryByCategory: (
+    categoryID: string | null,
     includeDone: boolean
   ) => Result<TLEvent[]>;
   queryByTag: (tagId: string, includeDone: boolean) => Result<TLEvent[]>;
@@ -26,16 +26,16 @@ export type TaskInnerService = {
 };
 
 export function createTaskInnerService(doc: Doc): TaskInnerService {
-  const taskMap = doc.getMap<TLEvent>(EventTableKey);
+  const eventMap = doc.getMap<TLEvent>(EventTableKey);
 
   const removeCategoryInfo: TaskInnerService["removeCategoryInfo"] =
     categoryId => {
-      Array.from(taskMap.values())
-        .filter(item => item.checkList == categoryId)
+      Array.from(eventMap.values())
+        .filter(item => item.category == categoryId)
         .forEach(item => {
-          taskMap.set(item.id, {
+          eventMap.set(item.id, {
             ...item,
-            checkList: undefined,
+            category: undefined,
           });
         });
     };
@@ -107,17 +107,17 @@ export function createEventService(
     };
   };
 
-  const queryByCheckList: EventService["queryByCheckList"] = (
-    checkListID,
+  const queryByCategory: EventService["queryByCategory"] = (
+    categoryID,
     includeArchived
   ) => {
     const data = Array.from(taskMap.values())
       .filter(item => {
         let result = true;
-        if (!checkListID || checkListID.length == 0) {
-          result = result && !item.checkList;
+        if (!categoryID || categoryID.length == 0) {
+          result = result && !item.category;
         } else {
-          result = result && item.checkList == checkListID;
+          result = result && item.category == categoryID;
         }
         if (!includeArchived) {
           result = result && !item.archived;
@@ -210,7 +210,7 @@ export function createEventService(
     queryAll,
     queryById,
     queryByIds,
-    queryByCheckList,
+    queryByCategory: queryByCategory,
     queryByTag,
     queryByTags,
     queryTags,

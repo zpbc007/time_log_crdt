@@ -4,7 +4,7 @@ export type TLEvent = {
   comment: string;
   archived: boolean;
   create_date_since_1970: number;
-  checkList?: string;
+  category?: string;
 };
 
 export function toNativeEvent({
@@ -13,15 +13,15 @@ export function toNativeEvent({
   comment,
   archived,
   create_date_since_1970,
-  checkList,
+  category,
 }: TLEvent): TLEvent {
-  return TL_CRDT_Native.event.createWithIdNameCommentArchivedCreate_date_since_1970CheckList(
+  return TL_CRDT_Native.event.createWithIdNameCommentArchivedCreate_date_since_1970Category(
     id,
     name,
     comment,
     archived,
     create_date_since_1970,
-    checkList || ""
+    category || ""
   );
 }
 
@@ -32,6 +32,6 @@ export function fromNativeTask(event: TLEvent): TLEvent {
     comment: event.comment,
     archived: event.archived,
     create_date_since_1970: event.create_date_since_1970,
-    checkList: event.checkList ? event.checkList : undefined,
+    category: event.category ? event.category : undefined,
   };
 }
