@@ -91,15 +91,17 @@ const NativeShim: typeof TL_CRDT_Native = {
     },
   },
   daySetting: {
-    createWithDate_since_1970TargetReview: function (
+    createWithDate_since_1970TargetReviewStatus: function (
       date_since_1970: number,
       target: string,
-      review: string
+      review: string,
+      status: string
     ): DaySetting {
       return {
         date_since_1970,
         target,
         review,
+        status,
       };
     },
     notifyChange: function (): void {

@@ -17,14 +17,16 @@ describe("core.service.DaySetting.service", () => {
     vi.stubGlobal("TL_CRDT_Native", {
       daySetting: {
         notifyChange,
-        createWithDate_since_1970TargetReview: (
+        createWithDate_since_1970TargetReviewStatus: (
           date_since_1970,
           target,
-          review
+          review,
+          status
         ) => ({
           date_since_1970,
           target,
           review,
+          status,
         }),
       },
     });
@@ -38,6 +40,7 @@ describe("core.service.DaySetting.service", () => {
       date_since_1970: Date.now(),
       target: "",
       review: "",
+      status: "",
     });
 
     expect(result.code).toBe(CommonResultCode.success);
@@ -57,6 +60,7 @@ describe("core.service.DaySetting.service", () => {
       date_since_1970: date,
       target: "target",
       review: "review",
+      status: "status",
     });
     const queryResult = daySettingService.queryByDate(date);
     expect(queryResult.code).toBe(CommonResultCode.success);
@@ -64,6 +68,8 @@ describe("core.service.DaySetting.service", () => {
     expect(queryResult.data.target).toEqual("target");
     // @ts-expect-error should has data
     expect(queryResult.data.review).toEqual("review");
+    // @ts-expect-error should has data
+    expect(queryResult.data.status).toEqual("status");
   });
 
   it("upsertTarget should create model", () => {
@@ -85,6 +91,7 @@ describe("core.service.DaySetting.service", () => {
       date_since_1970: Date.now(),
       target: "old_target",
       review: "old_review",
+      status: "old_status",
     });
 
     daySettingService.upsertTarget(date, "new_target");
@@ -95,5 +102,7 @@ describe("core.service.DaySetting.service", () => {
     expect(queryResult.data.target).toEqual("new_target");
     // @ts-expect-error should has data
     expect(queryResult.data.review).toEqual("old_review");
+    // @ts-expect-error should has data
+    expect(queryResult.data.status).toEqual("old_status");
   });
 });
