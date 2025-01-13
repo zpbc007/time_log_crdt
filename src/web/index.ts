@@ -1,6 +1,7 @@
 import { TimeLogCRDT } from "@/core";
 import { TLEvent } from "@/core/model";
 import { DaySetting } from "@/core/model/DaySettings";
+import { TLEventWithTagIds } from "@/core/model/Event";
 
 const NativeShim: typeof TL_CRDT_Native = {
   info: {
@@ -60,6 +61,27 @@ const NativeShim: typeof TL_CRDT_Native = {
     },
     notifyChange: () => {
       console.log("task change");
+    },
+  },
+  eventWithTags: {
+    createWithIdNameCommentArchivedCreate_date_since_1970CategoryTags: (
+      id: string,
+      name: string,
+      comment: string,
+      archived: boolean,
+      create_date_since_1970: number,
+      category: string,
+      tags: string[]
+    ) => {
+      return {
+        id,
+        name,
+        comment,
+        archived,
+        create_date_since_1970,
+        category,
+        tags,
+      } as TLEventWithTagIds;
     },
   },
   taskLog: {

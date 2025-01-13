@@ -3,6 +3,7 @@
 import { TimeLogCRDT } from "./core";
 import { Category, Tag, TLEvent, TaskLog } from "./core/model";
 import { DaySetting } from "./core/model/DaySettings";
+import { TLEventWithTagIds } from "./core/model/Event";
 
 declare global {
   const TL_CRDT_Native: {
@@ -35,6 +36,17 @@ declare global {
         category: string
       ) => TLEvent;
       notifyChange: () => void;
+    };
+    eventWithTags: {
+      createWithIdNameCommentArchivedCreate_date_since_1970CategoryTags: (
+        id: string,
+        name: string,
+        comment: string,
+        archived: boolean,
+        create_date_since_1970: number,
+        category: string,
+        tags: string[]
+      ) => TLEventWithTagIds;
     };
     taskLog: {
       createWithIdTaskCommentStart_date_since_1970End_date_since_1970: (

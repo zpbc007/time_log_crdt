@@ -7,6 +7,10 @@ export type TLEvent = {
   category?: string;
 };
 
+export type TLEventWithTagIds = TLEvent & {
+  tags: string[];
+};
+
 export function toNativeEvent({
   id,
   name,
@@ -22,6 +26,26 @@ export function toNativeEvent({
     archived,
     create_date_since_1970,
     category || ""
+  );
+}
+
+export function toNativeEventWithTagIds({
+  id,
+  name,
+  comment,
+  archived,
+  create_date_since_1970,
+  category,
+  tags,
+}: TLEventWithTagIds): TLEventWithTagIds {
+  return TL_CRDT_Native.eventWithTags.createWithIdNameCommentArchivedCreate_date_since_1970CategoryTags(
+    id,
+    name,
+    comment,
+    archived,
+    create_date_since_1970,
+    category || "",
+    tags
   );
 }
 

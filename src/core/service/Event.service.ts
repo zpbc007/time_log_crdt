@@ -3,15 +3,22 @@ import { CommonResultCode, Result } from "../common/type";
 import { fromNativeTask, Tag, TLEvent, toNativeEvent } from "../model";
 import { EventTableKey } from "./constants";
 import { createTaskTagRelationService } from "./TaskTagRelation.service";
+import { TLEventWithTagIds, toNativeEventWithTagIds } from "../model/Event";
 
 export type EventService = {
   queryAll: (includeArchived: boolean) => Result<TLEvent[]>;
+  queryAllWithTagIds: (includeArchived: boolean) => Result<TLEventWithTagIds[]>;
   queryById: (id: string) => Result<TLEvent | undefined>;
+  queryByIdWithTagIds: (id: string) => Result<TLEventWithTagIds | undefined>;
   queryByIds: (ids: string[]) => Result<TLEvent[]>;
   queryByCategory: (
     categoryID: string | null,
     includeDone: boolean
   ) => Result<TLEvent[]>;
+  queryByCategoryWithTagIds: (
+    categoryID: string | null,
+    includeDone: boolean
+  ) => Result<TLEventWithTagIds[]>;
   queryByTag: (tagId: string, includeDone: boolean) => Result<TLEvent[]>;
   queryByTags: (tagIds: string[], includeDone: boolean) => Result<TLEvent[]>;
   queryTags: (id: string) => Result<Tag["id"][]>;
@@ -70,11 +77,47 @@ export function createEventService(
     };
   };
 
+  function addTag2Event(event: TLEvent) {
+    const tags = taskTagRelationService.queryTagsByTask(event.id);
+    return toNativeEventWithTagIds({
+      ...event,
+      tags,
+    });
+  }
+
+  const queryAllWithTagIds: EventService["queryAllWithTagIds"] =
+    includeArchived => {
+      const result: TLEventWithTagIds[] = Array.from(taskMap.values()).reduce<
+        TLEventWithTagIds[]
+      >((acc, item) => {
+        if (!includeArchived && item.archived) {
+          return acc;
+        }
+
+        acc.push(addTag2Event(item));
+        return acc;
+      }, []);
+
+      return {
+        data: result.map(toNativeEventWithTagIds),
+        code: CommonResultCode.success,
+      };
+    };
+
   const queryById: EventService["queryById"] = id => {
     const targetTask = taskMap.get(id);
 
     return {
       data: targetTask ? toNativeEvent(targetTask) : null,
+      code: CommonResultCode.success,
+    };
+  };
+
+  const queryByIdWithTagIds: EventService["queryByIdWithTagIds"] = id => {
+    const targetTask = taskMap.get(id);
+
+    return {
+      data: targetTask ? addTag2Event(targetTask) : null,
       code: CommonResultCode.success,
     };
   };
@@ -107,25 +150,55 @@ export function createEventService(
     };
   };
 
+  function filterByCategory(
+    event: TLEvent,
+    categoryID: string | null,
+    includeArchived: boolean
+  ): boolean {
+    let result = true;
+    if (!categoryID || categoryID.length == 0) {
+      result = result && !event.category;
+    } else {
+      result = result && event.category == categoryID;
+    }
+    if (!includeArchived) {
+      result = result && !event.archived;
+    }
+
+    return result;
+  }
+
   const queryByCategory: EventService["queryByCategory"] = (
     categoryID,
     includeArchived
   ) => {
     const data = Array.from(taskMap.values())
       .filter(item => {
-        let result = true;
-        if (!categoryID || categoryID.length == 0) {
-          result = result && !item.category;
-        } else {
-          result = result && item.category == categoryID;
-        }
-        if (!includeArchived) {
-          result = result && !item.archived;
-        }
-
-        return result;
+        return filterByCategory(item, categoryID, includeArchived);
       })
       .map(toNativeEvent);
+
+    return {
+      data,
+      code: CommonResultCode.success,
+    };
+  };
+
+  const queryByCategoryWithTagIds: EventService["queryByCategoryWithTagIds"] = (
+    categoryID,
+    includeArchived
+  ) => {
+    const data = Array.from(taskMap.values()).reduce<TLEventWithTagIds[]>(
+      (acc, item) => {
+        if (!filterByCategory(item, categoryID, includeArchived)) {
+          return acc;
+        }
+        acc.push(addTag2Event(item));
+
+        return acc;
+      },
+      []
+    );
 
     return {
       data,
@@ -208,9 +281,12 @@ export function createEventService(
 
   return {
     queryAll,
+    queryAllWithTagIds,
     queryById,
+    queryByIdWithTagIds,
     queryByIds,
-    queryByCategory: queryByCategory,
+    queryByCategory,
+    queryByCategoryWithTagIds,
     queryByTag,
     queryByTags,
     queryTags,
