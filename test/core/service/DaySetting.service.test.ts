@@ -17,14 +17,16 @@ describe("core.service.DaySetting.service", () => {
     vi.stubGlobal("TL_CRDT_Native", {
       daySetting: {
         notifyChange,
-        createWithDate_since_1970TargetReviewStatus: (
+        createWithDate_since_1970TargetTargetEventsReviewStatus: (
           date_since_1970,
           target,
+          targetEvents,
           review,
           status
         ) => ({
           date_since_1970,
           target,
+          targetEvents,
           review,
           status,
         }),
@@ -39,6 +41,7 @@ describe("core.service.DaySetting.service", () => {
     const result = daySettingService.upsert({
       date_since_1970: Date.now(),
       target: "",
+      targetEvents: [],
       review: "",
       status: "",
     });
@@ -90,6 +93,7 @@ describe("core.service.DaySetting.service", () => {
     daySettingService.upsert({
       date_since_1970: Date.now(),
       target: "old_target",
+      targetEvents: ["old_event"],
       review: "old_review",
       status: "old_status",
     });

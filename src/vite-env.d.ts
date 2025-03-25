@@ -60,9 +60,10 @@ declare global {
       notifyRecordingChange: () => void;
     };
     daySetting: {
-      createWithDate_since_1970TargetReviewStatus: (
+      createWithDate_since_1970TargetTargetEventsReviewStatus: (
         date_since_1970: number,
         target: string,
+        targetEvents: string[],
         review: string,
         status: string
       ) => DaySetting;
